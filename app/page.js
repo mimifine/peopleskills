@@ -1032,13 +1032,15 @@ const PeopleSkillsPlatform = () => {
   const FullscreenMediaViewer = ({ mediaData, onClose }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     
+    React.useEffect(() => {
+      if (mediaData) {
+        setCurrentIndex(mediaData.startIndex || 0);
+      }
+    }, [mediaData]);
+    
     if (!mediaData) return null;
     
     const { items, type, startIndex } = mediaData;
-    
-    React.useEffect(() => {
-      setCurrentIndex(startIndex || 0);
-    }, [startIndex]);
     
     const nextItem = () => {
       setCurrentIndex((prev) => prev === items.length - 1 ? 0 : prev + 1);
@@ -1223,8 +1225,8 @@ const PeopleSkillsPlatform = () => {
                     required
                   >
                     <option value="">Select your role</option>
-                    <option value="BRAND">Brand - I'm hiring talent</option>
-                    <option value="DIRECT_TALENT">Talent - I'm looking for opportunities</option>
+                    <option value="BRAND">Brand - I&apos;m hiring talent</option>
+                    <option value="DIRECT_TALENT">Talent - I&apos;m looking for opportunities</option>
                   </select>
                 </div>
               )}
@@ -1240,7 +1242,7 @@ const PeopleSkillsPlatform = () => {
           
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              {authMode === 'login' ? "Don't have an account? " : "Already have an account? "}
+              {authMode === 'login' ? "Don&apos;t have an account? " : "Already have an account? "}
               <button
                 onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
                 className="text-purple-600 hover:text-purple-700 font-medium"
@@ -2275,7 +2277,7 @@ const PeopleSkillsPlatform = () => {
                               value={talent.sizes}
                               onChange={(e) => updateTalentRequirement(talent.id, 'sizes', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="e.g., Women's size 4-8, 5'6 to 5'9, athletic build, brunette hair preferred"
+                              placeholder="e.g., Women&apos;s size 4-8, 5&apos;6 to 5&apos;9, athletic build, brunette hair preferred"
                             />
                           </div>
                           
@@ -2342,7 +2344,7 @@ const PeopleSkillsPlatform = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                       placeholder="e.g., $2,000-$5,000 per day"
                     />
-                    <p className="text-xs text-gray-500 mt-1">Daily rate range you're comfortable paying talent</p>
+                    <p className="text-xs text-gray-500 mt-1">Daily rate range you&apos;re comfortable paying talent</p>
                   </div>
                 </div>
               </div>
