@@ -4,6 +4,11 @@ import React, { useState } from 'react';
 import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcase, Eye, MapPin, ExternalLink, Upload, X, ThumbsUp, ThumbsDown, Heart, MessageCircle, Calculator, Edit3, Image, Video, Trash2, ChevronLeft, ChevronRight, Play, Check } from 'lucide-react';
 
 const PeopleSkillsPlatform = () => {
+  // Password protection state
+  const [isPasswordProtected, setIsPasswordProtected] = useState(true);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState(false);
+  
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedTalentIds, setSelectedTalentIds] = useState([1, 2]);
   const [filterFavorites, setFilterFavorites] = useState(false);
@@ -173,6 +178,19 @@ const PeopleSkillsPlatform = () => {
     setAuthMode(mode);
     setShowAuthModal(true);
     setAuthForm({ email: '', password: '', role: '' });
+  };
+  
+  // Password protection function
+  const handlePasswordSubmit = (e) => {
+    e.preventDefault();
+    if (passwordInput === 'PeopleSkills1977') {
+      setIsPasswordProtected(false);
+      setPasswordError(false);
+      setPasswordInput('');
+    } else {
+      setPasswordError(true);
+      setPasswordInput('');
+    }
   };
   
   const formatFollowers = (count) => {
@@ -1295,1186 +1313,1240 @@ const PeopleSkillsPlatform = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <h1 className="text-xl font-semibold text-gray-900">People Skills</h1>
-            </div>
-            
-            {/* Role-based Tab Navigation */}
-            {isAuthenticated && (
-              <div className="flex items-center space-x-1">
-                {currentUserRole === 'ADMIN' && (
-                  <>
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'dashboard'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('talent')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'talent'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      All Talent
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('brief')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'brief'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      All Briefs
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('users')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'users'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      User Management
-                    </button>
-                  </>
-                )}
-                
-                {currentUserRole === 'BRAND' && (
-                  <>
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'dashboard'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Dashboard
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('talent')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'talent'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Talent Review
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('brief')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'brief'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Create Brief
-                    </button>
-                  </>
-                )}
-                
-                {currentUserRole === 'DIRECT_TALENT' && (
-                  <>
-                    <button
-                      onClick={() => setActiveTab('dashboard')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'dashboard'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      My Profile
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('opportunities')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'opportunities'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Opportunities
-                    </button>
-                    <button
-                      onClick={() => setActiveTab('earnings')}
-                      className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                        activeTab === 'earnings'
-                          ? 'bg-purple-100 text-purple-700'
-                          : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      Earnings
-                    </button>
-                  </>
-                )}
+      {/* Password Protection Screen */}
+      {isPasswordProtected ? (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-blue-50">
+          <div className="max-w-md w-full mx-auto p-8">
+            <div className="bg-white rounded-lg shadow-xl p-8">
+              <div className="text-center mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">People Skills</h1>
+                <p className="text-gray-600">Enter password to access the platform</p>
               </div>
-            )}
-            
-            <div className="flex items-center space-x-4">
-              {isAuthenticated ? (
-                <>
-                  {currentUserRole === 'BRAND' && (
-                    <>
-                      <button
-                        onClick={() => setShowBudgetCalc(true)}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
-                      >
-                        <Calculator className="w-4 h-4 mr-2" />
-                        Budget
-                      </button>
-                      <button 
-                        onClick={handleOpenBriefModal}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
-                      >
-                        <Plus className="w-4 h-4 mr-2" />
-                        New Brief
-                      </button>
-                    </>
+              
+              <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                <div>
+                  <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    value={passwordInput}
+                    onChange={(e) => {
+                      setPasswordInput(e.target.value);
+                      setPasswordError(false);
+                    }}
+                    className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-colors ${
+                      passwordError ? 'border-red-500' : 'border-gray-300'
+                    }`}
+                    placeholder="Enter password"
+                    autoFocus
+                  />
+                  {passwordError && (
+                    <p className="mt-2 text-sm text-red-600">Incorrect password. Please try again.</p>
                   )}
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-600">
-                      {currentUserRole === 'ADMIN' && 'Admin'}
-                      {currentUserRole === 'BRAND' && 'Brand'}
-                      {currentUserRole === 'DIRECT_TALENT' && 'Talent'}
-                    </span>
-                    <button
-                      onClick={handleLogout}
-                      className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                </>
-              ) : (
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={() => openAuthModal('login')}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
-                  >
-                    Sign In
-                  </button>
-                  <button
-                    onClick={() => openAuthModal('signup')}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
-                  >
-                    Sign Up
-                  </button>
                 </div>
-              )}
+                
+                <button
+                  type="submit"
+                  className="w-full bg-purple-600 text-white py-3 px-4 rounded-lg hover:bg-purple-700 transition-colors font-medium"
+                >
+                  Access Platform
+                </button>
+              </form>
+              
+              <div className="mt-6 text-center">
+                <p className="text-xs text-gray-500">
+                  Protected platform for authorized users only
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {!isAuthenticated ? (
-          // Login Screen
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center max-w-md">
-              <div className="mb-8">
-                <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to People Skills</h1>
-                <p className="text-lg text-gray-600 mb-8">
-                  The premier platform for connecting brands with exceptional talent
-                </p>
-              </div>
-              
-              <div className="space-y-4">
-                <button
-                  onClick={() => openAuthModal('login')}
-                  className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors font-medium text-lg"
-                >
-                  Sign In
-                </button>
-                <button
-                  onClick={() => openAuthModal('signup')}
-                  className="w-full border-2 border-purple-600 text-purple-600 py-3 px-6 rounded-lg hover:bg-purple-50 transition-colors font-medium text-lg"
-                >
-                  Create Account
-                </button>
-              </div>
-              
-              <div className="mt-8 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm text-gray-600 mb-3">Quick access for testing:</p>
-                <div className="grid grid-cols-1 gap-2">
-                  <button
-                    onClick={() => {
-                      handleAuthFormChange('email', 'admin@peopleskills.com');
-                      handleAuthFormChange('password', 'admin123');
-                      handleLogin();
-                    }}
-                    className="text-sm bg-gray-800 text-white py-2 px-3 rounded hover:bg-gray-900 transition-colors"
-                  >
-                    Admin Access
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAuthFormChange('email', 'brand@company.com');
-                      handleAuthFormChange('password', 'brand123');
-                      handleLogin();
-                    }}
-                    className="text-sm bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition-colors"
-                  >
-                    Brand Access
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAuthFormChange('email', 'talent@model.com');
-                      handleAuthFormChange('password', 'talent123');
-                      handleLogin();
-                    }}
-                    className="text-sm bg-green-600 text-white py-2 px-3 rounded hover:bg-green-700 transition-colors"
-                  >
-                    Talent Access
-                  </button>
+      ) : (
+        <>
+          <header className="bg-white shadow-sm border-b">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="flex justify-between items-center h-16">
+                <div className="flex items-center">
+                  <h1 className="text-xl font-semibold text-gray-900">People Skills</h1>
+                </div>
+                
+                {/* Role-based Tab Navigation */}
+                {isAuthenticated && (
+                  <div className="flex items-center space-x-1">
+                    {currentUserRole === 'ADMIN' && (
+                      <>
+                        <button
+                          onClick={() => setActiveTab('dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('talent')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'talent'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          All Talent
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('brief')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'brief'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          All Briefs
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('users')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'users'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          User Management
+                        </button>
+                      </>
+                    )}
+                    
+                    {currentUserRole === 'BRAND' && (
+                      <>
+                        <button
+                          onClick={() => setActiveTab('dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('talent')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'talent'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Talent Review
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('brief')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'brief'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Create Brief
+                        </button>
+                      </>
+                    )}
+                    
+                    {currentUserRole === 'DIRECT_TALENT' && (
+                      <>
+                        <button
+                          onClick={() => setActiveTab('dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          My Profile
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('opportunities')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'opportunities'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Opportunities
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('earnings')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'earnings'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Earnings
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
+                
+                <div className="flex items-center space-x-4">
+                  {isAuthenticated ? (
+                    <>
+                      {currentUserRole === 'BRAND' && (
+                        <>
+                          <button
+                            onClick={() => setShowBudgetCalc(true)}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700"
+                          >
+                            <Calculator className="w-4 h-4 mr-2" />
+                            Budget
+                          </button>
+                          <button 
+                            onClick={handleOpenBriefModal}
+                            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700"
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            New Brief
+                          </button>
+                        </>
+                      )}
+                      
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm text-gray-600">
+                          {currentUserRole === 'ADMIN' && 'Admin'}
+                          {currentUserRole === 'BRAND' && 'Brand'}
+                          {currentUserRole === 'DIRECT_TALENT' && 'Talent'}
+                        </span>
+                        <button
+                          onClick={handleLogout}
+                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        >
+                          Logout
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={() => openAuthModal('login')}
+                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                      >
+                        Sign In
+                      </button>
+                      <button
+                        onClick={() => openAuthModal('signup')}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                      >
+                        Sign Up
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        ) : (
-          // Authenticated Content
-          <>
-            {/* Dashboard Tab */}
-            {activeTab === 'dashboard' && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Project Dashboard</h2>
-                
-                {/* Quick Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                  <div className="bg-white rounded-lg shadow border p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-purple-100 rounded-lg">
-                        <Briefcase className="h-6 w-6 text-purple-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Active Projects</p>
-                        <p className="text-2xl font-semibold text-gray-900">{projects.length}</p>
-                      </div>
-                    </div>
+          </header>
+
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {!isAuthenticated ? (
+              // Login Screen
+              <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="text-center max-w-md">
+                  <div className="mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900 mb-4">Welcome to People Skills</h1>
+                    <p className="text-lg text-gray-600 mb-8">
+                      The premier platform for connecting brands with exceptional talent
+                    </p>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow border p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-green-100 rounded-lg">
-                        <Users className="h-6 w-6 text-green-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Total Talent</p>
-                        <p className="text-2xl font-semibold text-gray-900">{talents.length}</p>
-                      </div>
-                    </div>
+                  <div className="space-y-4">
+                    <button
+                      onClick={() => openAuthModal('login')}
+                      className="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 transition-colors font-medium text-lg"
+                    >
+                      Sign In
+                    </button>
+                    <button
+                      onClick={() => openAuthModal('signup')}
+                      className="w-full border-2 border-purple-600 text-purple-600 py-3 px-6 rounded-lg hover:bg-purple-50 transition-colors font-medium text-lg"
+                    >
+                      Create Account
+                    </button>
                   </div>
                   
-                  <div className="bg-white rounded-lg shadow border p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-blue-100 rounded-lg">
-                        <Star className="h-6 w-6 text-blue-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Selected Talent</p>
-                        <p className="text-2xl font-semibold text-gray-900">{selectedTalentIds.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow border p-6">
-                    <div className="flex items-center">
-                      <div className="p-2 bg-yellow-100 rounded-lg">
-                        <DollarSign className="h-6 w-6 text-yellow-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-600">Current Budget</p>
-                        <p className="text-2xl font-semibold text-gray-900">${budget.totals.total.toLocaleString()}</p>
-                      </div>
+                  <div className="mt-8 p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm text-gray-600 mb-3">Quick access for testing:</p>
+                    <div className="grid grid-cols-1 gap-2">
+                      <button
+                        onClick={() => {
+                          handleAuthFormChange('email', 'admin@peopleskills.com');
+                          handleAuthFormChange('password', 'admin123');
+                          handleLogin();
+                        }}
+                        className="text-sm bg-gray-800 text-white py-2 px-3 rounded hover:bg-gray-900 transition-colors"
+                      >
+                        Admin Access
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleAuthFormChange('email', 'brand@company.com');
+                          handleAuthFormChange('password', 'brand123');
+                          handleLogin();
+                        }}
+                        className="text-sm bg-blue-600 text-white py-2 px-3 rounded hover:bg-blue-700 transition-colors"
+                      >
+                        Brand Access
+                      </button>
+                      <button
+                        onClick={() => {
+                          handleAuthFormChange('email', 'talent@model.com');
+                          handleAuthFormChange('password', 'talent123');
+                          handleLogin();
+                        }}
+                        className="text-sm bg-green-600 text-white py-2 px-3 rounded hover:bg-green-700 transition-colors"
+                      >
+                        Talent Access
+                      </button>
                     </div>
                   </div>
                 </div>
-
-                {/* Recent Activity */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-                  <div className="lg:col-span-2 bg-white rounded-lg shadow border p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-start space-x-3">
-                        <div className="p-1 bg-green-100 rounded-full">
-                          <ThumbsUp className="h-4 w-4 text-green-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900">
-                            <span className="font-medium">Sarah Johnson</span> voted up Sarah Chen
-                          </p>
-                          <p className="text-xs text-gray-500">2 hours ago</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start space-x-3">
-                        <div className="p-1 bg-blue-100 rounded-full">
-                          <MessageCircle className="h-4 w-4 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900">
-                            <span className="font-medium">Mike Chen</span> commented on Marcus Rodriguez
-                          </p>
-                          <p className="text-xs text-gray-500">1 hour ago</p>
+              </div>
+            ) : (
+              // Authenticated Content
+              <>
+                {/* Dashboard Tab */}
+                {activeTab === 'dashboard' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Project Dashboard</h2>
+                    
+                    {/* Quick Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                      <div className="bg-white rounded-lg shadow border p-6">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-purple-100 rounded-lg">
+                            <Briefcase className="h-6 w-6 text-purple-600" />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Active Projects</p>
+                            <p className="text-2xl font-semibold text-gray-900">{projects.length}</p>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-start space-x-3">
-                        <div className="p-1 bg-red-100 rounded-full">
-                          <Heart className="h-4 w-4 text-red-600" />
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900">
-                            <span className="font-medium">Lisa Park</span> favorited Sarah Chen
-                          </p>
-                          <p className="text-xs text-gray-500">3 hours ago</p>
+                      <div className="bg-white rounded-lg shadow border p-6">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-green-100 rounded-lg">
+                            <Users className="h-6 w-6 text-green-600" />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Total Talent</p>
+                            <p className="text-2xl font-semibold text-gray-900">{talents.length}</p>
+                          </div>
                         </div>
                       </div>
                       
-                      <div className="flex items-start space-x-3">
-                        <div className="p-1 bg-purple-100 rounded-full">
-                          <Plus className="h-4 w-4 text-purple-600" />
+                      <div className="bg-white rounded-lg shadow border p-6">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-blue-100 rounded-lg">
+                            <Star className="h-6 w-6 text-blue-600" />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Selected Talent</p>
+                            <p className="text-2xl font-semibold text-gray-900">{selectedTalentIds.length}</p>
+                          </div>
                         </div>
-                        <div className="flex-1">
-                          <p className="text-sm text-gray-900">
-                            New talent added to Summer Campaign 2025
-                          </p>
-                          <p className="text-xs text-gray-500">5 hours ago</p>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg shadow border p-6">
+                        <div className="flex items-center">
+                          <div className="p-2 bg-yellow-100 rounded-lg">
+                            <DollarSign className="h-6 w-6 text-yellow-600" />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-600">Current Budget</p>
+                            <p className="text-2xl font-semibold text-gray-900">${budget.totals.total.toLocaleString()}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow border p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Voting Summary</h3>
-                    <div className="space-y-3">
-                      {talents.map(talent => (
-                        <div key={talent.id} className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-900">{talent.name}</span>
-                          <div className="flex items-center space-x-2">
-                            <div className="flex items-center space-x-1 text-green-600">
-                              <ThumbsUp className="h-3 w-3" />
-                              <span className="text-xs">{talent.votes.up.length}</span>
+
+                    {/* Recent Activity */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                      <div className="lg:col-span-2 bg-white rounded-lg shadow border p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Activity</h3>
+                        <div className="space-y-4">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-1 bg-green-100 rounded-full">
+                              <ThumbsUp className="h-4 w-4 text-green-600" />
                             </div>
-                            <div className="flex items-center space-x-1 text-red-600">
-                              <ThumbsDown className="h-3 w-3" />
-                              <span className="text-xs">{talent.votes.down.length}</span>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-900">
+                                <span className="font-medium">Sarah Johnson</span> voted up Sarah Chen
+                              </p>
+                              <p className="text-xs text-gray-500">2 hours ago</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-start space-x-3">
+                            <div className="p-1 bg-blue-100 rounded-full">
+                              <MessageCircle className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-900">
+                                <span className="font-medium">Mike Chen</span> commented on Marcus Rodriguez
+                              </p>
+                              <p className="text-xs text-gray-500">1 hour ago</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-start space-x-3">
+                            <div className="p-1 bg-red-100 rounded-full">
+                              <Heart className="h-4 w-4 text-red-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-900">
+                                <span className="font-medium">Lisa Park</span> favorited Sarah Chen
+                              </p>
+                              <p className="text-xs text-gray-500">3 hours ago</p>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-start space-x-3">
+                            <div className="p-1 bg-purple-100 rounded-full">
+                              <Plus className="h-4 w-4 text-purple-600" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-sm text-gray-900">
+                                New talent added to Summer Campaign 2025
+                              </p>
+                              <p className="text-xs text-gray-500">5 hours ago</p>
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Project Cards */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Projects</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {projects.map((project) => (
-                      <div key={project.id} className="bg-white rounded-lg shadow border p-6 hover:shadow-lg transition-shadow">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg font-semibold text-gray-900">{project.title}</h3>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            project.status === 'talent-review' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {project.status === 'talent-review' ? 'In Review' : 'Brief Sent'}
-                          </span>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg shadow border p-6">
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Team Voting Summary</h3>
+                        <div className="space-y-3">
+                          {talents.map(talent => (
+                            <div key={talent.id} className="flex items-center justify-between">
+                              <span className="text-sm font-medium text-gray-900">{talent.name}</span>
+                              <div className="flex items-center space-x-2">
+                                <div className="flex items-center space-x-1 text-green-600">
+                                  <ThumbsUp className="h-3 w-3" />
+                                  <span className="text-xs">{talent.votes.up.length}</span>
+                                </div>
+                                <div className="flex items-center space-x-1 text-red-600">
+                                  <ThumbsDown className="h-3 w-3" />
+                                  <span className="text-xs">{talent.votes.down.length}</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
+                      </div>
+                    </div>
+
+                    {/* Project Cards */}
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Active Projects</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {projects.map((project) => (
+                          <div key={project.id} className="bg-white rounded-lg shadow border p-6 hover:shadow-lg transition-shadow">
+                            <div className="flex items-center justify-between mb-4">
+                              <h3 className="text-lg font-semibold text-gray-900">{project.title}</h3>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                project.status === 'talent-review' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {project.status === 'talent-review' ? 'In Review' : 'Brief Sent'}
+                              </span>
+                            </div>
+                            
+                            <div className="space-y-3 text-sm text-gray-600 mb-4">
+                              <div className="flex items-center">
+                                <Calendar className="h-4 w-4 mr-2" />
+                                <span>Deadline: {project.deadline}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <DollarSign className="h-4 w-4 mr-2" />
+                                <span>{project.budget}</span>
+                              </div>
+                              <div className="flex items-center">
+                                <Users className="h-4 w-4 mr-2" />
+                                <span>{selectedTalentIds.length} talent selected</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              <button 
+                                onClick={() => setActiveTab('talent')}
+                                className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                              >
+                                View Talent
+                              </button>
+                              <button 
+                                onClick={() => setActiveTab('brief')}
+                                className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                              >
+                                Edit Brief
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                         
-                        <div className="space-y-3 text-sm text-gray-600 mb-4">
-                          <div className="flex items-center">
-                            <Calendar className="h-4 w-4 mr-2" />
-                            <span>Deadline: {project.deadline}</span>
+                        {/* Add New Project Card */}
+                        <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer">
+                          <Plus className="h-8 w-8 text-gray-400 mb-2" />
+                          <h3 className="text-lg font-medium text-gray-900 mb-2">New Project</h3>
+                          <p className="text-sm text-gray-600 text-center mb-4">Create a new casting brief to get started</p>
+                          <button 
+                            onClick={() => setActiveTab('brief')}
+                            className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                          >
+                            Create Brief
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Talent Pool Tab */}
+                {activeTab === 'talent' && (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                      <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <Users className="h-8 w-8 text-indigo-600" />
                           </div>
-                          <div className="flex items-center">
-                            <DollarSign className="h-4 w-4 mr-2" />
-                            <span>{project.budget}</span>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total Talents</p>
+                            <p className="text-2xl font-semibold text-gray-900">{talents.length}</p>
                           </div>
-                          <div className="flex items-center">
-                            <Users className="h-4 w-4 mr-2" />
-                            <span>{selectedTalentIds.length} talent selected</span>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <DollarSign className="h-8 w-8 text-yellow-600" />
                           </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Total Budget</p>
+                            <p className="text-2xl font-semibold text-gray-900">${totalBudget.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="bg-white rounded-lg shadow p-6">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <Heart className="h-8 w-8 text-red-600" />
+                          </div>
+                          <div className="ml-4">
+                            <p className="text-sm font-medium text-gray-500">Favorites</p>
+                            <p className="text-2xl font-semibold text-gray-900">{talents.filter(t => t.favorites.includes(currentUser.id)).length}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-lg shadow">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <h2 className="text-lg font-medium text-gray-900">Talent Pool</h2>
+                          <div className="flex items-center space-x-4">
+                            <label className="flex items-center">
+                              <input
+                                type="checkbox"
+                                checked={filterFavorites}
+                                onChange={(e) => setFilterFavorites(e.target.checked)}
+                                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <span className="ml-2 text-sm text-gray-700">Show Favorites Only</span>
+                            </label>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {filteredTalents.map((talent) => (
+                            <div key={talent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                              {/* Media Gallery */}
+                              <MediaGallery talent={talent} />
+                              
+                              <div className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <div className="flex items-center space-x-2">
+                                      <h3 className="text-lg font-semibold text-gray-900">{talent.name}</h3>
+                                      {currentUser.role === 'admin' && (
+                                        <button
+                                          onClick={() => handleNameEdit(talent.id, talent.name)}
+                                          className="text-gray-400 hover:text-gray-600"
+                                          title="Edit name"
+                                        >
+                                          <Edit3 className="w-4 h-4" />
+                                        </button>
+                                      )}
+                                    </div>
+                                    <p className="text-sm text-gray-600">{talent.category}</p>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                    <span className="text-sm text-gray-600">{talent.rating}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center text-sm text-gray-500 mb-3">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {talent.location}
+                                </div>
+                                {talent.castingNotes && (
+                                  <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                    <div className="flex items-start">
+                                      <FileText className="w-4 h-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
+                                      <div>
+                                        <p className="text-xs font-medium text-blue-800 mb-1">Casting Notes</p>
+                                        <p className="text-sm text-blue-700">{talent.castingNotes}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="mb-3 space-y-2">
+                                  {talent.socials?.instagram && (
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded flex items-center justify-center">
+                                          <span className="text-white text-xs font-bold">IG</span>
+                                        </div>
+                                        <a 
+                                          href={talent.socials.instagram.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-gray-700 hover:text-purple-600 flex items-center"
+                                        >
+                                          {talent.socials.instagram.handle}
+                                          <ExternalLink className="w-3 h-3 ml-1" />
+                                        </a>
+                                      </div>
+                                      <span className="text-xs text-gray-500">{formatFollowers(talent.socials.instagram.followers)} followers</span>
+                                    </div>
+                                  )}
+                                  
+                                  {talent.socials.tiktok && (
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
+                                          <span className="text-white text-xs font-bold">TT</span>
+                                        </div>
+                                        <a 
+                                          href={talent.socials.tiktok.url} 
+                                          target="_blank" 
+                                          rel="noopener noreferrer"
+                                          className="text-sm text-gray-700 hover:text-black flex items-center"
+                                        >
+                                          {talent.socials.tiktok.handle}
+                                          <ExternalLink className="w-3 h-3 ml-1" />
+                                        </a>
+                                      </div>
+                                      <span className="text-xs text-gray-500">
+                                        {formatFollowers(talent.socials.tiktok.followers)} followers
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex items-center justify-between mb-4">
+                                  <div className="text-lg font-semibold text-gray-900">
+                                    ${talent.rate.toLocaleString()}
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => handleVote(talent.id, 'up')}
+                                      className="p-1 rounded text-gray-400 hover:text-green-600"
+                                    >
+                                      <ThumbsUp className="w-4 h-4" />
+                                    </button>
+                                    <span className="text-sm text-gray-600">{talent.votes.up.length}</span>
+                                    <button
+                                      onClick={() => handleVote(talent.id, 'down')}
+                                      className="p-1 rounded text-gray-400 hover:text-red-600"
+                                    >
+                                      <ThumbsDown className="w-4 h-4" />
+                                    </button>
+                                    <span className="text-sm text-gray-600">{talent.votes.down.length}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <button
+                                    onClick={() => handleFavorite(talent.id)}
+                                    className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm ${
+                                      talent.favorites.includes(currentUser.id)
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-gray-100 text-gray-700 hover:bg-red-100 hover:text-red-700'
+                                    }`}
+                                  >
+                                    <Heart className="w-4 h-4" />
+                                    <span>Favorite</span>
+                                  </button>
+                                  
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                      onClick={() => setShowMediaUpload(talent.id)}
+                                      className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-green-100 hover:text-green-700"
+                                    >
+                                      <Upload className="w-4 h-4" />
+                                      <span>Media</span>
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Brief Tab */}
+                {activeTab === 'brief' && (
+                  <div>
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Casting Briefs</h2>
+                    <div className="bg-white rounded-lg shadow border p-6">
+                      <p className="text-gray-600 mb-4">Create and manage your casting briefs here.</p>
+                      <button 
+                        onClick={handleOpenBriefModal}
+                        className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Create New Brief</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </main>
+
+          {/* Media Upload Modal */}
+          {showMediaUpload && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold">Media Management</h2>
+                  <button
+                    onClick={() => setShowMediaUpload(null)}
+                    className="text-gray-400 hover:text-gray-600"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                
+                {(() => {
+                  const talent = talents.find(t => t.id === showMediaUpload);
+                  if (!talent) return null;
+                  
+                  return (
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-md font-medium mb-3">Images</h3>
+                        <div className="grid grid-cols-4 gap-4 mb-4">
+                          {talent.media.images.map((image) => (
+                            <div key={image.id} className="relative group">
+                              <img
+                                src={image.url}
+                                alt={image.title}
+                                className="w-full aspect-square object-cover rounded-lg"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
+                                  <button
+                                    onClick={() => setPrimaryMedia(showMediaUpload, 'image', image.id)}
+                                    className={`p-2 rounded-full ${image.isPrimary ? 'bg-blue-500 text-white ring-2 ring-blue-300' : 'bg-white text-gray-700'} hover:bg-blue-500 hover:text-white transition-all duration-200`}
+                                    title={image.isPrimary ? 'Primary Image' : 'Set as Primary'}
+                                  >
+                                    <Star className={`w-4 h-4 ${image.isPrimary ? 'fill-current' : ''}`} />
+                                  </button>
+                                  <button
+                                    onClick={() => removeMedia(showMediaUpload, 'image', image.id)}
+                                    className="p-2 rounded-full bg-white text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200"
+                                    title="Remove Image"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              {image.isPrimary && (
+                                <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
+                                  Primary
+                                </div>
+                              )}
+                            </div>
+                          ))}
                         </div>
                         
                         <div className="flex space-x-2">
-                          <button 
-                            onClick={() => setActiveTab('talent')}
-                            className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                          <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                            <Upload className="w-4 h-4 mr-2" />
+                            Upload Images
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={(e) => handleImageUpload(showMediaUpload, e.target.files)}
+                              className="hidden"
+                            />
+                          </label>
+                          <button
+                            onClick={() => addTestImages(showMediaUpload)}
+                            className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
                           >
-                            View Talent
+                            Add Test Images
                           </button>
-                          <button 
-                            onClick={() => setActiveTab('brief')}
-                            className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                          <button
+                            onClick={() => clearImages(showMediaUpload)}
+                            className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
                           >
-                            Edit Brief
+                            Clear Images
                           </button>
                         </div>
                       </div>
-                    ))}
-                    
-                    {/* Add New Project Card */}
-                    <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center hover:border-purple-400 hover:bg-purple-50 transition-colors cursor-pointer">
-                      <Plus className="h-8 w-8 text-gray-400 mb-2" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">New Project</h3>
-                      <p className="text-sm text-gray-600 text-center mb-4">Create a new casting brief to get started</p>
-                      <button 
-                        onClick={() => setActiveTab('brief')}
-                        className="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
-                      >
-                        Create Brief
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {/* Talent Pool Tab */}
-            {activeTab === 'talent' && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <Users className="h-8 w-8 text-indigo-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Talents</p>
-                        <p className="text-2xl font-semibold text-gray-900">{talents.length}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <DollarSign className="h-8 w-8 text-yellow-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Total Budget</p>
-                        <p className="text-2xl font-semibold text-gray-900">${totalBudget.toLocaleString()}</p>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="bg-white rounded-lg shadow p-6">
-                    <div className="flex items-center">
-                      <div className="flex-shrink-0">
-                        <Heart className="h-8 w-8 text-red-600" />
-                      </div>
-                      <div className="ml-4">
-                        <p className="text-sm font-medium text-gray-500">Favorites</p>
-                        <p className="text-2xl font-semibold text-gray-900">{talents.filter(t => t.favorites.includes(currentUser.id)).length}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-medium text-gray-900">Talent Pool</h2>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex items-center">
-                          <input
-                            type="checkbox"
-                            checked={filterFavorites}
-                            onChange={(e) => setFilterFavorites(e.target.checked)}
-                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <span className="ml-2 text-sm text-gray-700">Show Favorites Only</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {filteredTalents.map((talent) => (
-                        <div key={talent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
-                          {/* Media Gallery */}
-                          <MediaGallery talent={talent} />
+                      <div>
+                        <h3 className="text-md font-medium mb-3">Videos</h3>
+                        <div className="grid grid-cols-4 gap-4 mb-4">
+                          {talent.media.videos.map((video) => (
+                            <div key={video.id} className="relative group">
+                              <img
+                                src={video.thumbnailUrl || video.url}
+                                alt={video.title}
+                                className="w-full aspect-square object-cover rounded-lg"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
+                                  <button
+                                    onClick={() => setPrimaryMedia(showMediaUpload, 'video', video.id)}
+                                    className={`p-2 rounded-full ${video.isPrimary ? 'bg-red-500 text-white ring-2 ring-red-300' : 'bg-white text-gray-700'} hover:bg-red-500 hover:text-white transition-all duration-200`}
+                                    title={video.isPrimary ? 'Primary Video' : 'Set as Primary'}
+                                  >
+                                    <Star className={`w-4 h-4 ${video.isPrimary ? 'fill-current' : ''}`} />
+                                  </button>
+                                  <button
+                                    onClick={() => removeMedia(showMediaUpload, 'video', video.id)}
+                                    className="p-2 rounded-full bg-white text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200"
+                                    title="Remove Video"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="bg-black bg-opacity-50 rounded-full p-2">
+                                  <Play className="w-4 h-4 text-white" />
+                                </div>
+                              </div>
+                              {video.isPrimary && (
+                                <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
+                                  Primary
+                                </div>
+                              )}
+                              {video.type && video.type !== 'upload' && (
+                                <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
+                                  {video.type}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        
+                        <div className="space-y-4">
+                          <div className="flex space-x-2">
+                            <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                              <Video className="w-4 h-4 mr-2" />
+                              Upload Videos
+                              <input
+                                type="file"
+                                multiple
+                                accept="video/*"
+                                onChange={(e) => handleVideoUpload(showMediaUpload, e.target.files)}
+                                className="hidden"
+                              />
+                            </label>
+                          </div>
                           
-                          <div className="p-4">
-                            <div className="flex items-start justify-between mb-2">
-                              <div>
-                                <div className="flex items-center space-x-2">
-                                  <h3 className="text-lg font-semibold text-gray-900">{talent.name}</h3>
-                                  {currentUser.role === 'admin' && (
-                                    <button
-                                      onClick={() => handleNameEdit(talent.id, talent.name)}
-                                      className="text-gray-400 hover:text-gray-600"
-                                      title="Edit name"
-                                    >
-                                      <Edit3 className="w-4 h-4" />
-                                    </button>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-600">{talent.category}</p>
-                              </div>
-                              <div className="flex items-center space-x-1">
-                                <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                                <span className="text-sm text-gray-600">{talent.rating}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center text-sm text-gray-500 mb-3">
-                              <MapPin className="w-4 h-4 mr-1" />
-                              {talent.location}
-                            </div>
-                            {talent.castingNotes && (
-                              <div className="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                <div className="flex items-start">
-                                  <FileText className="w-4 h-4 text-blue-600 mt-0.5 mr-2 flex-shrink-0" />
-                                  <div>
-                                    <p className="text-xs font-medium text-blue-800 mb-1">Casting Notes</p>
-                                    <p className="text-sm text-blue-700">{talent.castingNotes}</p>
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            <div className="mb-3 space-y-2">
-                              {talent.socials?.instagram && (
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded flex items-center justify-center">
-                                      <span className="text-white text-xs font-bold">IG</span>
-                                    </div>
-                                    <a 
-                                      href={talent.socials.instagram.url} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-sm text-gray-700 hover:text-purple-600 flex items-center"
-                                    >
-                                      {talent.socials.instagram.handle}
-                                      <ExternalLink className="w-3 h-3 ml-1" />
-                                    </a>
-                                  </div>
-                                  <span className="text-xs text-gray-500">{formatFollowers(talent.socials.instagram.followers)} followers</span>
-                                </div>
-                              )}
-                              
-                              {talent.socials.tiktok && (
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-6 h-6 bg-black rounded flex items-center justify-center">
-                                      <span className="text-white text-xs font-bold">TT</span>
-                                    </div>
-                                    <a 
-                                      href={talent.socials.tiktok.url} 
-                                      target="_blank" 
-                                      rel="noopener noreferrer"
-                                      className="text-sm text-gray-700 hover:text-black flex items-center"
-                                    >
-                                      {talent.socials.tiktok.handle}
-                                      <ExternalLink className="w-3 h-3 ml-1" />
-                                    </a>
-                                  </div>
-                                  <span className="text-xs text-gray-500">
-                                    {formatFollowers(talent.socials.tiktok.followers)} followers
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex items-center justify-between mb-4">
-                              <div className="text-lg font-semibold text-gray-900">
-                                ${talent.rate.toLocaleString()}
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => handleVote(talent.id, 'up')}
-                                  className="p-1 rounded text-gray-400 hover:text-green-600"
-                                >
-                                  <ThumbsUp className="w-4 h-4" />
-                                </button>
-                                <span className="text-sm text-gray-600">{talent.votes.up.length}</span>
-                                <button
-                                  onClick={() => handleVote(talent.id, 'down')}
-                                  className="p-1 rounded text-gray-400 hover:text-red-600"
-                                >
-                                  <ThumbsDown className="w-4 h-4" />
-                                </button>
-                                <span className="text-sm text-gray-600">{talent.votes.down.length}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center justify-between">
-                              <button
-                                onClick={() => handleFavorite(talent.id)}
-                                className={`flex items-center space-x-1 px-3 py-1 rounded-full text-sm ${
-                                  talent.favorites.includes(currentUser.id)
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-red-100 hover:text-red-700'
-                                }`}
-                              >
-                                <Heart className="w-4 h-4" />
-                                <span>Favorite</span>
-                              </button>
-                              
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={() => setShowMediaUpload(talent.id)}
-                                  className="flex items-center space-x-1 px-3 py-1 rounded-full text-sm bg-gray-100 text-gray-700 hover:bg-green-100 hover:text-green-700"
-                                >
-                                  <Upload className="w-4 h-4" />
-                                  <span>Media</span>
-                                </button>
-                              </div>
-                            </div>
+                          <div className="flex space-x-2">
+                            <input
+                              type="text"
+                              value={newYouTubeLink}
+                              onChange={(e) => setNewYouTubeLink(e.target.value)}
+                              placeholder="YouTube URL"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button
+                              onClick={() => addVideoLink(showMediaUpload, 'youtube', newYouTubeLink)}
+                              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                            >
+                              Add YouTube
+                            </button>
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <input
+                              type="text"
+                              value={newVimeoLink}
+                              onChange={(e) => setNewVimeoLink(e.target.value)}
+                              placeholder="Vimeo URL"
+                              className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                            />
+                            <button
+                              onClick={() => addVideoLink(showMediaUpload, 'vimeo', newVimeoLink)}
+                              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                            >
+                              Add Vimeo
+                            </button>
                           </div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
+                  );
+                })()}
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Brief Tab */}
-            {activeTab === 'brief' && (
-              <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Casting Briefs</h2>
-                <div className="bg-white rounded-lg shadow border p-6">
-                  <p className="text-gray-600 mb-4">Create and manage your casting briefs here.</p>
-                  <button 
-                    onClick={handleOpenBriefModal}
-                    className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+          {/* Enhanced Brief Creation Modal */}
+          {showBriefModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-gray-900">Create Casting Brief</h2>
+                  <button
+                    onClick={() => setShowBriefModal(false)}
+                    className="text-gray-400 hover:text-gray-600"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>Create New Brief</span>
+                    <X className="w-6 h-6" />
                   </button>
                 </div>
-              </div>
-            )}
-          </>
-        )}
-      </main>
-
-      {/* Media Upload Modal */}
-      {showMediaUpload && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-2xl max-h-96 overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Media Management</h2>
-              <button
-                onClick={() => setShowMediaUpload(null)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            {(() => {
-              const talent = talents.find(t => t.id === showMediaUpload);
-              if (!talent) return null;
-              
-              return (
-                <div className="space-y-6">
+                
+                <div className="space-y-8">
                   <div>
-                    <h3 className="text-md font-medium mb-3">Images</h3>
-                    <div className="grid grid-cols-4 gap-4 mb-4">
-                      {talent.media.images.map((image) => (
-                        <div key={image.id} className="relative group">
-                          <img
-                            src={image.url}
-                            alt={image.title}
-                            className="w-full aspect-square object-cover rounded-lg"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
-                              <button
-                                onClick={() => setPrimaryMedia(showMediaUpload, 'image', image.id)}
-                                className={`p-2 rounded-full ${image.isPrimary ? 'bg-blue-500 text-white ring-2 ring-blue-300' : 'bg-white text-gray-700'} hover:bg-blue-500 hover:text-white transition-all duration-200`}
-                                title={image.isPrimary ? 'Primary Image' : 'Set as Primary'}
-                              >
-                                <Star className={`w-4 h-4 ${image.isPrimary ? 'fill-current' : ''}`} />
-                              </button>
-                              <button
-                                onClick={() => removeMedia(showMediaUpload, 'image', image.id)}
-                                className="p-2 rounded-full bg-white text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200"
-                                title="Remove Image"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </div>
-                          {image.isPrimary && (
-                            <div className="absolute top-2 left-2 bg-blue-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
-                              Primary
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    
-                    <div className="flex space-x-2">
-                      <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Upload Images
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Details</h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Title
+                        </label>
                         <input
-                          type="file"
-                          multiple
-                          accept="image/*"
-                          onChange={(e) => handleImageUpload(showMediaUpload, e.target.files)}
-                          className="hidden"
+                          type="text"
+                          value={briefForm.projectTitle}
+                          onChange={(e) => handleBriefFormChange('projectTitle', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Enter project title"
                         />
-                      </label>
-                      <button
-                        onClick={() => addTestImages(showMediaUpload)}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
-                      >
-                        Add Test Images
-                      </button>
-                      <button
-                        onClick={() => clearImages(showMediaUpload)}
-                        className="inline-flex items-center px-4 py-2 border border-red-300 rounded-md shadow-sm text-sm font-medium text-red-700 bg-white hover:bg-red-50"
-                      >
-                        Clear Images
-                      </button>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Description
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={briefForm.projectDescription}
+                          onChange={(e) => handleBriefFormChange('projectDescription', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Describe your project, campaign goals, brand values, and creative vision..."
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Talent Usage Rights
+                        </label>
+                        <textarea
+                          rows={4}
+                          value={briefForm.usageRights}
+                          onChange={(e) => handleBriefFormChange('usageRights', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Specify detailed usage rights (e.g., Digital ads on Instagram and Facebook for 6 months, print ads in magazines for 3 months, website usage for 1 year, etc.)"
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div>
-                    <h3 className="text-md font-medium mb-3">Videos</h3>
-                    <div className="grid grid-cols-4 gap-4 mb-4">
-                      {talent.media.videos.map((video) => (
-                        <div key={video.id} className="relative group">
-                          <img
-                            src={video.thumbnailUrl || video.url}
-                            alt={video.title}
-                            className="w-full aspect-square object-cover rounded-lg"
-                          />
-                          <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-200 rounded-lg flex items-center justify-center">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex space-x-2">
-                              <button
-                                onClick={() => setPrimaryMedia(showMediaUpload, 'video', video.id)}
-                                className={`p-2 rounded-full ${video.isPrimary ? 'bg-red-500 text-white ring-2 ring-red-300' : 'bg-white text-gray-700'} hover:bg-red-500 hover:text-white transition-all duration-200`}
-                                title={video.isPrimary ? 'Primary Video' : 'Set as Primary'}
-                              >
-                                <Star className={`w-4 h-4 ${video.isPrimary ? 'fill-current' : ''}`} />
-                              </button>
-                              <button
-                                onClick={() => removeMedia(showMediaUpload, 'video', video.id)}
-                                className="p-2 rounded-full bg-white text-red-600 hover:bg-red-500 hover:text-white transition-all duration-200"
-                                title="Remove Video"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Deadline</h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Deadline
+                        </label>
+                        <input
+                          type="date"
+                          value={projectDeadline}
+                          onChange={(e) => setProjectDeadline(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Select project deadline"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">When do you need final casting by?</p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Deadline Notes (Optional)
+                        </label>
+                        <textarea
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Any additional context about the deadline, urgency, or timeline requirements..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Talent Requirements</h3>
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Number of Talent Needed
+                        </label>
+                        <select
+                          value={numberOfTalent}
+                          onChange={(e) => handleTalentNumberChange(parseInt(e.target.value))}
+                          className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          {Array.from({ length: 15 }, (_, i) => i + 1).map(num => (
+                            <option key={num} value={num}>
+                              {num} {num === 1 ? 'talent' : 'talents'}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      
+                      {/* Dynamic Talent Sections */}
+                      <div className="space-y-6">
+                        {talentRequirements.map((talent, index) => (
+                          <div key={talent.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <h4 className="text-md font-semibold text-gray-900 mb-4">
+                              Talent {talent.id}
+                            </h4>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Sizes & Requirements
+                                </label>
+                                <textarea
+                                  rows={3}
+                                  value={talent.sizes}
+                                  onChange={(e) => updateTalentRequirement(talent.id, 'sizes', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="e.g., Women&apos;s size 4-8, 5&apos;6 to 5&apos;9, athletic build, brunette hair preferred"
+                                />
+                              </div>
+                              
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Gender
+                                </label>
+                                <select
+                                  value={talent.gender}
+                                  onChange={(e) => updateTalentRequirement(talent.id, 'gender', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                  <option value="">Select Gender</option>
+                                  <option value="female">Female</option>
+                                  <option value="male">Male</option>
+                                  <option value="non-binary">Non-Binary</option>
+                                  <option value="any">Any Gender</option>
+                                </select>
+                              </div>
                             </div>
                           </div>
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="bg-black bg-opacity-50 rounded-full p-2">
-                              <Play className="w-4 h-4 text-white" />
-                            </div>
-                          </div>
-                          {video.isPrimary && (
-                            <div className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">
-                              Primary
-                            </div>
-                          )}
-                          {video.type && video.type !== 'upload' && (
-                            <div className="absolute top-2 right-2 bg-gray-800 text-white text-xs px-2 py-1 rounded">
-                              {video.type}
-                            </div>
-                          )}
-                        </div>
-                      ))}
+                        ))}
+                      </div>
+                      
+                      {/* Overall Talent Notes */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Additional Talent Notes
+                        </label>
+                        <textarea
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Any additional requirements, special skills, or notes that apply to all talent..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Budget Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Ideal Total Project Budget
+                        </label>
+                        <input
+                          type="text"
+                          value={briefForm.totalBudget}
+                          onChange={(e) => handleBriefFormChange('totalBudget', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="e.g., $75,000 or $50,000-$100,000"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Include all costs: talent, production, usage rights, etc.</p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Preferred Talent Rate Range
+                        </label>
+                        <input
+                          type="text"
+                          value={briefForm.talentRateRange}
+                          onChange={(e) => handleBriefFormChange('talentRateRange', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="e.g., $2,000-$5,000 per day"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Daily rate range you&apos;re comfortable paying talent</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Shoot Details</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Shoot Start Date
+                        </label>
+                        <input
+                          type="date"
+                          value={briefForm.shootStartDate}
+                          onChange={(e) => handleBriefFormChange('shootStartDate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Shoot End Date
+                        </label>
+                        <input
+                          type="date"
+                          value={briefForm.shootEndDate}
+                          onChange={(e) => handleBriefFormChange('shootEndDate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Fitting Date (Optional)
+                        </label>
+                        <input
+                          type="date"
+                          value={briefForm.fittingDate}
+                          onChange={(e) => handleBriefFormChange('fittingDate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
                     </div>
                     
-                    <div className="space-y-4">
-                      <div className="flex space-x-2">
-                        <label className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
-                          <Video className="w-4 h-4 mr-2" />
-                          Upload Videos
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Shoot Location
+                      </label>
+                      <input
+                        type="text"
+                        value={briefForm.shootLocation}
+                        onChange={(e) => handleBriefFormChange('shootLocation', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Studio address, city, or location details"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Creative Brief Files</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Project Creative Brief Files
+                        </label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">Upload brand guidelines, mood boards, etc.</p>
                           <input
                             type="file"
                             multiple
-                            accept="video/*"
-                            onChange={(e) => handleVideoUpload(showMediaUpload, e.target.files)}
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                             className="hidden"
+                            id="project-files"
                           />
-                        </label>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={newYouTubeLink}
-                          onChange={(e) => setNewYouTubeLink(e.target.value)}
-                          placeholder="YouTube URL"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                          onClick={() => addVideoLink(showMediaUpload, 'youtube', newYouTubeLink)}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
-                        >
-                          Add YouTube
-                        </button>
-                      </div>
-                      
-                      <div className="flex space-x-2">
-                        <input
-                          type="text"
-                          value={newVimeoLink}
-                          onChange={(e) => setNewVimeoLink(e.target.value)}
-                          placeholder="Vimeo URL"
-                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        />
-                        <button
-                          onClick={() => addVideoLink(showMediaUpload, 'vimeo', newVimeoLink)}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                        >
-                          Add Vimeo
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      )}
-
-      {/* Enhanced Brief Creation Modal */}
-      {showBriefModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-gray-900">Create Casting Brief</h2>
-              <button
-                onClick={() => setShowBriefModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="space-y-8">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Details</h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Project Title
-                    </label>
-                    <input
-                      type="text"
-                      value={briefForm.projectTitle}
-                      onChange={(e) => handleBriefFormChange('projectTitle', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Enter project title"
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Project Description
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={briefForm.projectDescription}
-                      onChange={(e) => handleBriefFormChange('projectDescription', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Describe your project, campaign goals, brand values, and creative vision..."
-                    />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Talent Usage Rights
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={briefForm.usageRights}
-                      onChange={(e) => handleBriefFormChange('usageRights', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Specify detailed usage rights (e.g., Digital ads on Instagram and Facebook for 6 months, print ads in magazines for 3 months, website usage for 1 year, etc.)"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Deadline</h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Project Deadline
-                    </label>
-                    <input
-                      type="date"
-                      value={projectDeadline}
-                      onChange={(e) => setProjectDeadline(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Select project deadline"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">When do you need final casting by?</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Deadline Notes (Optional)
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Any additional context about the deadline, urgency, or timeline requirements..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Talent Requirements</h3>
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Number of Talent Needed
-                    </label>
-                    <select
-                      value={numberOfTalent}
-                      onChange={(e) => handleTalentNumberChange(parseInt(e.target.value))}
-                      className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    >
-                      {Array.from({ length: 15 }, (_, i) => i + 1).map(num => (
-                        <option key={num} value={num}>
-                          {num} {num === 1 ? 'talent' : 'talents'}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  
-                  {/* Dynamic Talent Sections */}
-                  <div className="space-y-6">
-                    {talentRequirements.map((talent, index) => (
-                      <div key={talent.id} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                        <h4 className="text-md font-semibold text-gray-900 mb-4">
-                          Talent {talent.id}
-                        </h4>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Sizes & Requirements
-                            </label>
-                            <textarea
-                              rows={3}
-                              value={talent.sizes}
-                              onChange={(e) => updateTalentRequirement(talent.id, 'sizes', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="e.g., Women&apos;s size 4-8, 5&apos;6 to 5&apos;9, athletic build, brunette hair preferred"
-                            />
-                          </div>
-                          
-                          <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Gender
-                            </label>
-                            <select
-                              value={talent.gender}
-                              onChange={(e) => updateTalentRequirement(talent.id, 'gender', e.target.value)}
-                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                            >
-                              <option value="">Select Gender</option>
-                              <option value="female">Female</option>
-                              <option value="male">Male</option>
-                              <option value="non-binary">Non-Binary</option>
-                              <option value="any">Any Gender</option>
-                            </select>
-                          </div>
+                          <label htmlFor="project-files" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
+                            Browse Files
+                          </label>
                         </div>
                       </div>
-                    ))}
-                  </div>
-                  
-                  {/* Overall Talent Notes */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Additional Talent Notes
-                    </label>
-                    <textarea
-                      rows={3}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="Any additional requirements, special skills, or notes that apply to all talent..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Budget Information</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Ideal Total Project Budget
-                    </label>
-                    <input
-                      type="text"
-                      value={briefForm.totalBudget}
-                      onChange={(e) => handleBriefFormChange('totalBudget', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="e.g., $75,000 or $50,000-$100,000"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Include all costs: talent, production, usage rights, etc.</p>
-                  </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Preferred Talent Rate Range
-                    </label>
-                    <input
-                      type="text"
-                      value={briefForm.talentRateRange}
-                      onChange={(e) => handleBriefFormChange('talentRateRange', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      placeholder="e.g., $2,000-$5,000 per day"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">Daily rate range you&apos;re comfortable paying talent</p>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Shoot Details</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Shoot Start Date
-                    </label>
-                    <input
-                      type="date"
-                      value={briefForm.shootStartDate}
-                      onChange={(e) => handleBriefFormChange('shootStartDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Shoot End Date
-                    </label>
-                    <input
-                      type="date"
-                      value={briefForm.shootEndDate}
-                      onChange={(e) => handleBriefFormChange('shootEndDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Fitting Date (Optional)
-                    </label>
-                    <input
-                      type="date"
-                      value={briefForm.fittingDate}
-                      onChange={(e) => handleBriefFormChange('fittingDate', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
-                  </div>
-                </div>
-                
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Shoot Location
-                  </label>
-                  <input
-                    type="text"
-                    value={briefForm.shootLocation}
-                    onChange={(e) => handleBriefFormChange('shootLocation', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Studio address, city, or location details"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Creative Brief Files</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Project Creative Brief Files
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">Upload brand guidelines, mood boards, etc.</p>
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        className="hidden"
-                        id="project-files"
-                      />
-                      <label htmlFor="project-files" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
-                        Browse Files
-                      </label>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Talent Creative Brief Files
+                        </label>
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                          <p className="text-sm text-gray-600 mb-2">Upload talent direction documents</p>
+                          <input
+                            type="file"
+                            multiple
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                            className="hidden"
+                            id="talent-files"
+                          />
+                          <label htmlFor="talent-files" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
+                            Browse Files
+                          </label>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Talent Creative Brief Files
-                    </label>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
-                      <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-600 mb-2">Upload talent direction documents</p>
-                      <input
-                        type="file"
-                        multiple
-                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
-                        className="hidden"
-                        id="talent-files"
-                      />
-                      <label htmlFor="talent-files" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
-                        Browse Files
-                      </label>
-                    </div>
+                  <div className="flex justify-end space-x-4 pt-6 border-t">
+                    <button 
+                      onClick={handleSaveDraft}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Save Draft
+                    </button>
+                    <button
+                      onClick={handleSendBrief}
+                      className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
+                      <Send className="h-4 w-4" />
+                      <span>Send Brief</span>
+                    </button>
                   </div>
                 </div>
-              </div>
-              
-              <div className="flex justify-end space-x-4 pt-6 border-t">
-                <button 
-                  onClick={handleSaveDraft}
-                  className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                >
-                  Save Draft
-                </button>
-                <button
-                  onClick={handleSendBrief}
-                  className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2">
-                  <Send className="h-4 w-4" />
-                  <span>Send Brief</span>
-                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
+          )}
 
-      {/* Fullscreen Media Viewer */}
-      {showFullscreenMedia && (
-        <FullscreenMediaViewer
-          mediaData={showFullscreenMedia}
-          onClose={() => setShowFullscreenMedia(null)}
-        />
-      )}
+          {/* Fullscreen Media Viewer */}
+          {showFullscreenMedia && (
+            <FullscreenMediaViewer
+              mediaData={showFullscreenMedia}
+              onClose={() => setShowFullscreenMedia(null)}
+            />
+          )}
 
-      {/* Authentication Modal */}
-      <AuthenticationModal />
+          {/* Authentication Modal */}
+          <AuthenticationModal />
+        </>
+      )}
     </div>
   );
 };
