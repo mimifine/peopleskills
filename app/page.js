@@ -1438,6 +1438,7 @@ const PeopleSkillsPlatform = () => {
     // Here you would typically send the data to your backend
     console.log('Talent Profile Data:', talentProfileForm);
     console.log('Talent Media:', talentProfileMedia);
+    console.log('Availability Calendar:', availabilityCalendar);
     
     alert('Talent profile submitted successfully! We will review your application and get back to you soon.');
     setShowTalentProfileModal(false);
@@ -1479,6 +1480,350 @@ const PeopleSkillsPlatform = () => {
       videos: [],
       primaryImage: null
     });
+    
+    setAvailabilityCalendar({});
+  };
+  
+  // Availability Calendar utility functions
+  const formatDateKey = (date) => {
+    return date.toISOString().split('T')[0];
+  };
+  
+  const getDaysInMonth = (month, year) => {
+    return new Date(year, month + 1, 0).getDate();
+  };
+  
+  const getFirstDayOfMonth = (month, year) => {
+    return new Date(year, month, 1).getDay();
+  };
+  
+  const generateCalendarDays = (month, year) => {
+    const daysInMonth = getDaysInMonth(month, year);
+    const firstDayOfMonth = getFirstDayOfMonth(month, year);
+    const days = [];
+    
+    // Add empty cells for days before the first day of the month
+    for (let i = 0; i < firstDayOfMonth; i++) {
+      days.push(null);
+    }
+    
+    // Add days of the month
+    for (let i = 1; i <= daysInMonth; i++) {
+      days.push(new Date(year, month, i));
+    }
+    
+    return days;
+  };
+  
+  const toggleDateAvailability = (date) => {
+    const dateKey = formatDateKey(date);
+    const currentAvailability = availabilityCalendar[dateKey];
+    
+    setAvailabilityCalendar(prev => ({
+      ...prev,
+      [dateKey]: {
+        available: !currentAvailability?.available,
+        location: currentAvailability?.location || 'local',
+        notes: currentAvailability?.notes || ''
+      }
+    }));
+  };
+  
+  const updateDateLocation = (date, location) => {
+    const dateKey = formatDateKey(date);
+    const currentAvailability = availabilityCalendar[dateKey];
+    
+    setAvailabilityCalendar(prev => ({
+      ...prev,
+      [dateKey]: {
+        ...currentAvailability,
+        location: location
+      }
+    }));
+  };
+  
+  const updateDateNotes = (date, notes) => {
+    const dateKey = formatDateKey(date);
+    const currentAvailability = availabilityCalendar[dateKey];
+    
+    setAvailabilityCalendar(prev => ({
+      ...prev,
+      [dateKey]: {
+        ...currentAvailability,
+        notes: notes
+      }
+    }));
+  };
+  
+  const handleDateClick = (date) => {
+    if (!date) return;
+    
+    if (isSelectingRange) {
+      // End range selection
+      setSelectedDateRange(prev => ({ ...prev, end: date }));
+      setIsSelectingRange(false);
+      
+      // Apply availability to the range
+      const start = selectedDateRange.start;
+      const end = date;
+      
+      if (start && end) {
+        const startDate = new Date(Math.min(start.getTime(), end.getTime()));
+        const endDate = new Date(Math.max(start.getTime(), end.getTime()));
+        
+        const newAvailability = { ...availabilityCalendar };
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const dateKey = formatDateKey(d);
+          newAvailability[dateKey] = {
+            available: true,
+            location: 'local',
+            notes: ''
+          };
+        }
+        setAvailabilityCalendar(newAvailability);
+      }
+    } else {
+      // Start range selection or toggle single date
+      setSelectedDateRange({ start: date, end: null });
+      setIsSelectingRange(true);
+      toggleDateAvailability(date);
+    }
+  };
+  
+  const handleDateMouseEnter = (date) => {
+    if (isSelectingRange && date) {
+      setSelectedDateRange(prev => ({ ...prev, end: date }));
+    }
+  };
+  
+  const navigateMonth = (direction) => {
+    if (direction === 'prev') {
+      if (currentMonth === 0) {
+        setCurrentMonth(11);
+        setCurrentYear(prev => prev - 1);
+      } else {
+        setCurrentMonth(prev => prev - 1);
+      }
+    } else {
+      if (currentMonth === 11) {
+        setCurrentMonth(0);
+        setCurrentYear(prev => prev + 1);
+      } else {
+        setCurrentMonth(prev => prev + 1);
+      }
+    }
+  };
+  
+  const getLocationColor = (location) => {
+    switch (location) {
+      case 'local': return 'bg-green-500';
+      case 'state': return 'bg-blue-500';
+      case 'national': return 'bg-purple-500';
+      case 'international': return 'bg-orange-500';
+      default: return 'bg-green-500';
+    }
+  };
+  
+  const getLocationLabel = (location) => {
+    switch (location) {
+      case 'local': return 'Local';
+      case 'state': return 'State';
+      case 'national': return 'National';
+      case 'international': return 'International';
+      default: return 'Local';
+    }
+  };
+  
+  // Availability Calendar state
+  const [availabilityCalendar, setAvailabilityCalendar] = useState({});
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [selectedDateRange, setSelectedDateRange] = useState({ start: null, end: null });
+  const [isSelectingRange, setIsSelectingRange] = useState(false);
+
+  // Availability Calendar Component
+  const AvailabilityCalendar = () => {
+    const calendarDays = generateCalendarDays(currentMonth, currentYear);
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+    
+    const isDateInRange = (date) => {
+      if (!selectedDateRange.start || !selectedDateRange.end) return false;
+      const start = new Date(Math.min(selectedDateRange.start.getTime(), selectedDateRange.end.getTime()));
+      const end = new Date(Math.max(selectedDateRange.start.getTime(), selectedDateRange.end.getTime()));
+      return date >= start && date <= end;
+    };
+    
+    const isDateAvailable = (date) => {
+      if (!date) return false;
+      const dateKey = formatDateKey(date);
+      return availabilityCalendar[dateKey]?.available || false;
+    };
+    
+    const getDateAvailability = (date) => {
+      if (!date) return null;
+      const dateKey = formatDateKey(date);
+      return availabilityCalendar[dateKey];
+    };
+    
+    return (
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-lg font-semibold text-gray-900">Availability Calendar</h3>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => navigateMonth('prev')}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <span className="text-lg font-medium text-gray-900 min-w-[120px] text-center">
+              {monthNames[currentMonth]} {currentYear}
+            </span>
+            <button
+              onClick={() => navigateMonth('next')}
+              className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Calendar Legend */}
+        <div className="flex flex-wrap gap-4 mb-4 text-sm">
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-green-500 rounded"></div>
+            <span>Available</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-gray-300 rounded"></div>
+            <span>Unavailable</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-blue-500 rounded"></div>
+            <span>State Travel</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-purple-500 rounded"></div>
+            <span>National Travel</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <div className="w-4 h-4 bg-orange-500 rounded"></div>
+            <span>International</span>
+          </div>
+        </div>
+        
+        {/* Calendar Grid */}
+        <div className="grid grid-cols-7 gap-1 mb-6">
+          {/* Day headers */}
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="p-2 text-center text-sm font-medium text-gray-500">
+              {day}
+            </div>
+          ))}
+          
+          {/* Calendar days */}
+          {calendarDays.map((date, index) => {
+            if (!date) {
+              return <div key={index} className="p-2"></div>;
+            }
+            
+            const availability = getDateAvailability(date);
+            const isAvailable = isDateAvailable(date);
+            const isInRange = isDateInRange(date);
+            const isToday = formatDateKey(date) === formatDateKey(new Date());
+            
+            return (
+              <div
+                key={index}
+                className={`p-2 min-h-[60px] border border-gray-200 cursor-pointer transition-all ${
+                  isAvailable 
+                    ? 'bg-green-50 border-green-200 hover:bg-green-100' 
+                    : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                } ${
+                  isInRange ? 'ring-2 ring-blue-300' : ''
+                } ${
+                  isToday ? 'ring-2 ring-purple-300' : ''
+                }`}
+                onClick={() => handleDateClick(date)}
+                onMouseEnter={() => handleDateMouseEnter(date)}
+              >
+                <div className="text-sm font-medium text-gray-900 mb-1">
+                  {date.getDate()}
+                </div>
+                
+                {isAvailable && availability && (
+                  <div className="space-y-1">
+                    <div className={`w-2 h-2 rounded-full ${getLocationColor(availability.location)}`}></div>
+                    {availability.notes && (
+                      <div className="text-xs text-gray-600 truncate" title={availability.notes}>
+                        {availability.notes}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Selected Date Details */}
+        {selectedDateRange.start && !isSelectingRange && (
+          <div className="border-t border-gray-200 pt-4">
+            <h4 className="text-sm font-medium text-gray-900 mb-3">
+              Date Details: {selectedDateRange.start.toLocaleDateString()}
+            </h4>
+            
+            {selectedDateRange.end && selectedDateRange.start !== selectedDateRange.end && (
+              <p className="text-sm text-gray-600 mb-3">
+                Range: {selectedDateRange.start.toLocaleDateString()} - {selectedDateRange.end.toLocaleDateString()}
+              </p>
+            )}
+            
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Location Preference
+                </label>
+                <select
+                  value={getDateAvailability(selectedDateRange.start)?.location || 'local'}
+                  onChange={(e) => updateDateLocation(selectedDateRange.start, e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                >
+                  <option value="local">Local only</option>
+                  <option value="state">Willing to travel within state</option>
+                  <option value="national">Willing to travel nationally</option>
+                  <option value="international">International OK</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Notes (optional)
+                </label>
+                <textarea
+                  value={getDateAvailability(selectedDateRange.start)?.notes || ''}
+                  onChange={(e) => updateDateNotes(selectedDateRange.start, e.target.value)}
+                  placeholder="e.g., Half day only, Morning only, Available after 2pm..."
+                  rows={2}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Instructions */}
+        <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+          <p className="text-sm text-blue-800">
+            <strong>How to use:</strong> Click dates to toggle availability. Click and drag to select date ranges. 
+            Use the location dropdown and notes field to specify preferences for each available date.
+          </p>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -3227,6 +3572,16 @@ const PeopleSkillsPlatform = () => {
                         />
                       </div>
                     </div>
+                  </div>
+                  
+                  {/* Availability Calendar */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Availability Calendar</h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Set your availability for upcoming months. Click dates to mark as available/unavailable, 
+                      and specify your travel preferences for each date.
+                    </p>
+                    <AvailabilityCalendar />
                   </div>
                 </div>
 
