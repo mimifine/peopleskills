@@ -56,6 +56,53 @@ const PeopleSkillsPlatform = () => {
     shootLocation: ''
   });
   
+  // Talent Profile Creation state
+  const [talentProfileForm, setTalentProfileForm] = useState({
+    // Personal Information
+    fullName: '',
+    email: '',
+    phone: '',
+    city: '',
+    state: '',
+    bio: '',
+    specialties: [],
+    
+    // Physical Information
+    height: '',
+    weight: '',
+    shirtSize: '',
+    pantsSize: '',
+    dressSize: '',
+    shoeSize: '',
+    hairColor: '',
+    eyeColor: '',
+    specialSkills: '',
+    
+    // Rate Information
+    dailyRate: '',
+    halfDayRate: '',
+    usageFee: '',
+    travelPreferences: 'local',
+    
+    // Social Media
+    instagram: '',
+    instagramFollowers: '',
+    tiktok: '',
+    tiktokFollowers: '',
+    youtube: '',
+    youtubeFollowers: '',
+    twitter: '',
+    twitterFollowers: ''
+  });
+  
+  const [talentProfileMedia, setTalentProfileMedia] = useState({
+    images: [],
+    videos: [],
+    primaryImage: null
+  });
+  
+  const [showTalentProfileModal, setShowTalentProfileModal] = useState(false);
+  
   // Enhanced talent requirements state
   const [numberOfTalent, setNumberOfTalent] = useState(1);
   const [talentRequirements, setTalentRequirements] = useState([
@@ -771,15 +818,12 @@ const PeopleSkillsPlatform = () => {
   // Handle talent number changes
   const handleTalentNumberChange = (count) => {
     setNumberOfTalent(count);
-    
-    // Create array of talent requirements based on count
     const newRequirements = [];
-    for (let i = 1; i <= count; i++) {
-      const existing = talentRequirements.find(req => req.id === i);
+    for (let i = 0; i < count; i++) {
       newRequirements.push({
-        id: i,
-        sizes: existing ? existing.sizes : '',
-        gender: existing ? existing.gender : ''
+        id: i + 1,
+        sizes: talentRequirements[i]?.sizes || '',
+        gender: talentRequirements[i]?.gender || ''
       });
     }
     setTalentRequirements(newRequirements);
@@ -1311,6 +1355,132 @@ const PeopleSkillsPlatform = () => {
     );
   };
 
+  // Talent Profile Creation functions
+  const handleTalentProfileFormChange = (field, value) => {
+    setTalentProfileForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+  
+  const handleSpecialtyToggle = (specialty) => {
+    setTalentProfileForm(prev => ({
+      ...prev,
+      specialties: prev.specialties.includes(specialty)
+        ? prev.specialties.filter(s => s !== specialty)
+        : [...prev.specialties, specialty]
+    }));
+  };
+  
+  const handleTalentImageUpload = (files) => {
+    const newImages = Array.from(files).map((file, index) => ({
+      id: Date.now() + index,
+      url: URL.createObjectURL(file),
+      title: file.name,
+      file: file
+    }));
+    
+    setTalentProfileMedia(prev => ({
+      ...prev,
+      images: [...prev.images, ...newImages].slice(0, 20) // Limit to 20 images
+    }));
+  };
+  
+  const handleTalentVideoUpload = (files) => {
+    const newVideos = Array.from(files).map((file, index) => ({
+      id: Date.now() + index,
+      url: URL.createObjectURL(file),
+      title: file.name,
+      file: file
+    }));
+    
+    setTalentProfileMedia(prev => ({
+      ...prev,
+      videos: [...prev.videos, ...newVideos].slice(0, 5) // Limit to 5 videos
+    }));
+  };
+  
+  const setTalentPrimaryImage = (imageId) => {
+    setTalentProfileMedia(prev => ({
+      ...prev,
+      primaryImage: imageId
+    }));
+  };
+  
+  const removeTalentMedia = (type, mediaId) => {
+    setTalentProfileMedia(prev => ({
+      ...prev,
+      [type]: prev[type].filter(media => media.id !== mediaId),
+      primaryImage: type === 'images' && prev.primaryImage === mediaId ? null : prev.primaryImage
+    }));
+  };
+  
+  const handleTalentProfileSubmit = () => {
+    // Validate required fields
+    const requiredFields = ['fullName', 'email', 'phone', 'city', 'state', 'bio'];
+    const missingFields = requiredFields.filter(field => !talentProfileForm[field]);
+    
+    if (missingFields.length > 0) {
+      alert(`Please fill in all required fields: ${missingFields.join(', ')}`);
+      return;
+    }
+    
+    if (talentProfileForm.specialties.length === 0) {
+      alert('Please select at least one specialty');
+      return;
+    }
+    
+    if (talentProfileMedia.images.length === 0) {
+      alert('Please upload at least one image');
+      return;
+    }
+    
+    // Here you would typically send the data to your backend
+    console.log('Talent Profile Data:', talentProfileForm);
+    console.log('Talent Media:', talentProfileMedia);
+    
+    alert('Talent profile submitted successfully! We will review your application and get back to you soon.');
+    setShowTalentProfileModal(false);
+    
+    // Reset form
+    setTalentProfileForm({
+      fullName: '',
+      email: '',
+      phone: '',
+      city: '',
+      state: '',
+      bio: '',
+      specialties: [],
+      height: '',
+      weight: '',
+      shirtSize: '',
+      pantsSize: '',
+      dressSize: '',
+      shoeSize: '',
+      hairColor: '',
+      eyeColor: '',
+      specialSkills: '',
+      dailyRate: '',
+      halfDayRate: '',
+      usageFee: '',
+      travelPreferences: 'local',
+      instagram: '',
+      instagramFollowers: '',
+      tiktok: '',
+      tiktokFollowers: '',
+      youtube: '',
+      youtubeFollowers: '',
+      twitter: '',
+      twitterFollowers: ''
+    });
+    
+    setTalentProfileMedia({
+      images: [],
+      videos: [],
+      primaryImage: null
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Password Protection Screen */}
@@ -1570,9 +1740,23 @@ const PeopleSkillsPlatform = () => {
                     </button>
                     <button
                       onClick={() => openAuthModal('signup')}
-                      className="w-full border-2 border-purple-600 text-purple-600 py-3 px-6 rounded-lg hover:bg-purple-50 transition-colors font-medium text-lg"
+                      className="w-full bg-white text-purple-600 py-3 px-6 rounded-lg border-2 border-purple-600 hover:bg-purple-50 transition-colors font-medium text-lg"
                     >
-                      Create Account
+                      Sign Up
+                    </button>
+                    <div className="relative">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-300" />
+                      </div>
+                      <div className="relative flex justify-center text-sm">
+                        <span className="px-2 bg-white text-gray-500">or</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setShowTalentProfileModal(true)}
+                      className="w-full bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors font-medium text-lg"
+                    >
+                      Join as Talent
                     </button>
                   </div>
                   
@@ -2545,6 +2729,527 @@ const PeopleSkillsPlatform = () => {
 
           {/* Authentication Modal */}
           <AuthenticationModal />
+
+          {/* Talent Profile Creation Modal */}
+          {showTalentProfileModal && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+              <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-2xl font-bold text-gray-900">Join People Skills as Talent</h2>
+                    <button
+                      onClick={() => setShowTalentProfileModal(false)}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <X className="h-6 w-6" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600 mt-2">Create your talent profile to start receiving casting opportunities</p>
+                </div>
+
+                <div className="p-6 space-y-8">
+                  {/* Personal Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Full Name *
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.fullName}
+                          onChange={(e) => handleTalentProfileFormChange('fullName', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Enter your full name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Email Address *
+                        </label>
+                        <input
+                          type="email"
+                          value={talentProfileForm.email}
+                          onChange={(e) => handleTalentProfileFormChange('email', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="your.email@example.com"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Phone Number *
+                        </label>
+                        <input
+                          type="tel"
+                          value={talentProfileForm.phone}
+                          onChange={(e) => handleTalentProfileFormChange('phone', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="(555) 123-4567"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          City *
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.city}
+                          onChange={(e) => handleTalentProfileFormChange('city', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Los Angeles"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          State *
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.state}
+                          onChange={(e) => handleTalentProfileFormChange('state', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="CA"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Bio/Description *
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={talentProfileForm.bio}
+                        onChange={(e) => handleTalentProfileFormChange('bio', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Tell us about yourself, your experience, and what makes you unique..."
+                      />
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Specialties *
+                      </label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        {['Commercial', 'Fashion', 'Lifestyle', 'Acting', 'Runway', 'Editorial', 'Beauty', 'Fitness'].map((specialty) => (
+                          <label key={specialty} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={talentProfileForm.specialties.includes(specialty)}
+                              onChange={() => handleSpecialtyToggle(specialty)}
+                              className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                            />
+                            <span className="text-sm text-gray-700">{specialty}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Physical Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Physical Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Height
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.height}
+                          onChange={(e) => handleTalentProfileFormChange('height', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="5'8"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Weight
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.weight}
+                          onChange={(e) => handleTalentProfileFormChange('weight', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="130 lbs"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Hair Color
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.hairColor}
+                          onChange={(e) => handleTalentProfileFormChange('hairColor', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Brown"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Eye Color
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.eyeColor}
+                          onChange={(e) => handleTalentProfileFormChange('eyeColor', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Blue"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Clothing Sizes
+                      </label>
+                      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Shirt</label>
+                          <input
+                            type="text"
+                            value={talentProfileForm.shirtSize}
+                            onChange={(e) => handleTalentProfileFormChange('shirtSize', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="M"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Pants</label>
+                          <input
+                            type="text"
+                            value={talentProfileForm.pantsSize}
+                            onChange={(e) => handleTalentProfileFormChange('pantsSize', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="30"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Dress</label>
+                          <input
+                            type="text"
+                            value={talentProfileForm.dressSize}
+                            onChange={(e) => handleTalentProfileFormChange('dressSize', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="6"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs text-gray-500 mb-1">Shoe</label>
+                          <input
+                            type="text"
+                            value={talentProfileForm.shoeSize}
+                            onChange={(e) => handleTalentProfileFormChange('shoeSize', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="8"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Special Skills/Talents
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={talentProfileForm.specialSkills}
+                        onChange={(e) => handleTalentProfileFormChange('specialSkills', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Dancing, singing, sports, languages, etc."
+                      />
+                    </div>
+                  </div>
+
+                  {/* Rate Information */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Rate Information</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Daily Rate
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.dailyRate}
+                          onChange={(e) => handleTalentProfileFormChange('dailyRate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="$2,500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Half-Day Rate
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.halfDayRate}
+                          onChange={(e) => handleTalentProfileFormChange('halfDayRate', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="$1,500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Usage Fee Preferences
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.usageFee}
+                          onChange={(e) => handleTalentProfileFormChange('usageFee', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="e.g., $5,000 for national TV, $2,000 for digital"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Travel Preferences
+                        </label>
+                        <select
+                          value={talentProfileForm.travelPreferences}
+                          onChange={(e) => handleTalentProfileFormChange('travelPreferences', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        >
+                          <option value="local">Local only</option>
+                          <option value="regional">Willing to travel regionally</option>
+                          <option value="national">Willing to travel nationally</option>
+                          <option value="international">Willing to travel internationally</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Media Upload Section */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Media Upload</h3>
+                    
+                    {/* Images */}
+                    <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Images (up to 20) *
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                        <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2">Upload high-quality photos (JPG, PNG)</p>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleTalentImageUpload(e.target.files)}
+                          className="hidden"
+                          id="talent-images"
+                        />
+                        <label htmlFor="talent-images" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
+                          Browse Images
+                        </label>
+                      </div>
+                      
+                      {talentProfileMedia.images.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-600 mb-2">Uploaded Images ({talentProfileMedia.images.length}/20)</p>
+                          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                            {talentProfileMedia.images.map((image, index) => (
+                              <div key={image.id} className="relative group">
+                                <img
+                                  src={image.url}
+                                  alt={image.title}
+                                  className={`w-full h-24 object-cover rounded-lg cursor-pointer ${
+                                    talentProfileMedia.primaryImage === image.id ? 'ring-2 ring-purple-500' : ''
+                                  }`}
+                                  onClick={() => setTalentPrimaryImage(image.id)}
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all rounded-lg flex items-center justify-center">
+                                  <button
+                                    onClick={() => removeTalentMedia('images', image.id)}
+                                    className="opacity-0 group-hover:opacity-100 bg-red-500 text-white p-1 rounded-full hover:bg-red-600"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                                {talentProfileMedia.primaryImage === image.id && (
+                                  <div className="absolute top-1 left-1 bg-purple-500 text-white text-xs px-1 rounded">
+                                    Primary
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Videos */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Videos (up to 5)
+                      </label>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-purple-400 transition-colors">
+                        <Video className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-600 mb-2">Upload video files (MP4, MOV)</p>
+                        <input
+                          type="file"
+                          multiple
+                          accept="video/*"
+                          onChange={(e) => handleTalentVideoUpload(e.target.files)}
+                          className="hidden"
+                          id="talent-videos"
+                        />
+                        <label htmlFor="talent-videos" className="bg-purple-600 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-purple-700">
+                          Browse Videos
+                        </label>
+                      </div>
+                      
+                      {talentProfileMedia.videos.length > 0 && (
+                        <div className="mt-4">
+                          <p className="text-sm text-gray-600 mb-2">Uploaded Videos ({talentProfileMedia.videos.length}/5)</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {talentProfileMedia.videos.map((video) => (
+                              <div key={video.id} className="relative group">
+                                <video
+                                  src={video.url}
+                                  className="w-full h-32 object-cover rounded-lg"
+                                  controls
+                                />
+                                <button
+                                  onClick={() => removeTalentMedia('videos', video.id)}
+                                  className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 opacity-0 group-hover:opacity-100"
+                                >
+                                  <X className="h-4 w-4" />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Social Media Links */}
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Instagram Handle
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.instagram}
+                          onChange={(e) => handleTalentProfileFormChange('instagram', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="@username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Instagram Followers
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.instagramFollowers}
+                          onChange={(e) => handleTalentProfileFormChange('instagramFollowers', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="10K"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          TikTok Handle
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.tiktok}
+                          onChange={(e) => handleTalentProfileFormChange('tiktok', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="@username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          TikTok Followers
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.tiktokFollowers}
+                          onChange={(e) => handleTalentProfileFormChange('tiktokFollowers', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="50K"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          YouTube Channel
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.youtube}
+                          onChange={(e) => handleTalentProfileFormChange('youtube', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Channel name"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          YouTube Subscribers
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.youtubeFollowers}
+                          onChange={(e) => handleTalentProfileFormChange('youtubeFollowers', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="5K"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Twitter/X Handle
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.twitter}
+                          onChange={(e) => handleTalentProfileFormChange('twitter', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="@username"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Twitter/X Followers
+                        </label>
+                        <input
+                          type="text"
+                          value={talentProfileForm.twitterFollowers}
+                          onChange={(e) => handleTalentProfileFormChange('twitterFollowers', e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="2K"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="sticky bottom-0 bg-white border-t border-gray-200 px-6 py-4">
+                  <div className="flex justify-end space-x-4">
+                    <button
+                      onClick={() => setShowTalentProfileModal(false)}
+                      className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleTalentProfileSubmit}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                    >
+                      <Check className="h-4 w-4" />
+                      <span>Submit Profile</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </>
       )}
     </div>
