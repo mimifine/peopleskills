@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcase, Eye, MapPin, ExternalLink, Upload, X, ThumbsUp, ThumbsDown, Heart, MessageCircle, Calculator, Edit3, Image, Video, Trash2, ChevronLeft, ChevronRight, Play, Check } from 'lucide-react';
+import { db } from '../lib/supabase.js';
 
 const PeopleSkillsPlatform = () => {
   // Password protection state
@@ -39,6 +40,28 @@ const PeopleSkillsPlatform = () => {
     password: '',
     role: ''
   });
+  
+  // Add Talent Form State
+  const [addTalentForm, setAddTalentForm] = useState({
+    fullName: '',
+    category: '',
+    location: '',
+    height: '',
+    bio: '',
+    dailyRate: '',
+    halfDayRate: '',
+    usageFee: '',
+    travelAccommodation: '',
+    agencyPercent: '',
+    instagram: '',
+    instagramFollowers: '',
+    tiktok: '',
+    tiktokFollowers: '',
+    status: 'pending'
+  });
+  
+  const [addTalentLoading, setAddTalentLoading] = useState(false);
+  const [addTalentMessage, setAddTalentMessage] = useState({ type: '', text: '' });
   
   // Brief form state
   const [briefForm, setBriefForm] = useState({
@@ -137,7 +160,8 @@ const PeopleSkillsPlatform = () => {
     }
   });
   
-  const currentUser = { id: 'admin', name: 'Admin User', role: 'admin' };
+  // Current user state - will be updated on login
+  const [currentUser, setCurrentUser] = useState({ id: 'admin', name: 'Admin User', role: 'admin' });
   
   // Mock users for authentication
   const mockUsers = [
@@ -164,6 +188,103 @@ const PeopleSkillsPlatform = () => {
       id: 'talent-1'
     }
   ];
+
+  // Add Talent Form Handlers
+  const handleAddTalentFormChange = (field, value) => {
+    setAddTalentForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const resetAddTalentForm = () => {
+    setAddTalentForm({
+      fullName: '',
+      category: '',
+      location: '',
+      height: '',
+      bio: '',
+      dailyRate: '',
+      halfDayRate: '',
+      usageFee: '',
+      travelAccommodation: '',
+      agencyPercent: '',
+      instagram: '',
+      instagramFollowers: '',
+      tiktok: '',
+      tiktokFollowers: '',
+      status: 'pending'
+    });
+    setAddTalentMessage({ type: '', text: '' });
+  };
+
+  const handleAddTalentSubmit = async (e) => {
+    e.preventDefault();
+    
+    // Validation
+    if (!addTalentForm.fullName.trim()) {
+      setAddTalentMessage({ type: 'error', text: 'Full name is required' });
+      return;
+    }
+
+    setAddTalentLoading(true);
+    setAddTalentMessage({ type: '', text: '' });
+
+    try {
+      // Prepare social media data
+      const socials = {};
+      if (addTalentForm.instagram) {
+        socials.instagram = {
+          handle: addTalentForm.instagram,
+          url: `https://instagram.com/${addTalentForm.instagram.replace('@', '')}`,
+          followers: addTalentForm.instagramFollowers || 0
+        };
+      }
+      if (addTalentForm.tiktok) {
+        socials.tiktok = {
+          handle: addTalentForm.tiktok,
+          url: `https://tiktok.com/@${addTalentForm.tiktok.replace('@', '')}`,
+          followers: addTalentForm.tiktokFollowers || 0
+        };
+      }
+
+      // Prepare talent profile data
+      const talentData = {
+        full_name: addTalentForm.fullName,
+        bio: addTalentForm.bio,
+        category: addTalentForm.category,
+        location: addTalentForm.location,
+        daily_rate: addTalentForm.dailyRate ? parseInt(addTalentForm.dailyRate) : null,
+        half_day_rate: addTalentForm.halfDayRate ? parseInt(addTalentForm.halfDayRate) : null,
+        usage_fee: addTalentForm.usageFee ? parseInt(addTalentForm.usageFee) : null,
+        travel_accommodation: addTalentForm.travelAccommodation ? parseInt(addTalentForm.travelAccommodation) : null,
+        agency_percent: addTalentForm.agencyPercent ? parseInt(addTalentForm.agencyPercent) : null,
+        height: addTalentForm.height,
+        socials: Object.keys(socials).length > 0 ? socials : null,
+        status: addTalentForm.status
+      };
+
+      // Create talent profile in Supabase
+      const newTalent = await db.talentProfiles.create(talentData);
+      
+      setAddTalentMessage({ 
+        type: 'success', 
+        text: `Talent "${addTalentForm.fullName}" added successfully! ID: ${newTalent.id}` 
+      });
+      
+      // Reset form
+      resetAddTalentForm();
+      
+    } catch (error) {
+      console.error('Error adding talent:', error);
+      setAddTalentMessage({ 
+        type: 'error', 
+        text: `Failed to add talent: ${error.message}` 
+      });
+    } finally {
+      setAddTalentLoading(false);
+    }
+  };
   
   // Authentication functions
   const handleAuthFormChange = (field, value) => {
@@ -181,6 +302,7 @@ const PeopleSkillsPlatform = () => {
     if (user) {
       setIsAuthenticated(true);
       setCurrentUserRole(user.role);
+      setCurrentUser(user); // Update currentUser with the logged in user
       setShowAuthModal(false);
       setAuthForm({ email: '', password: '', role: '' });
     } else {
@@ -220,6 +342,7 @@ const PeopleSkillsPlatform = () => {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUserRole(null);
+    setCurrentUser({ id: 'admin', name: 'Admin User', role: 'admin' }); // Reset currentUser
     setActiveTab('dashboard');
   };
   
@@ -1571,34 +1694,44 @@ const PeopleSkillsPlatform = () => {
                           Dashboard
                         </button>
                         <button
-                          onClick={() => setActiveTab('talent')}
+                          onClick={() => setActiveTab('add-talent')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'talent'
+                            activeTab === 'add-talent'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          All Talent
+                          Add Talent
                         </button>
                         <button
-                          onClick={() => setActiveTab('brief')}
+                          onClick={() => setActiveTab('talent-packages')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'brief'
+                            activeTab === 'talent-packages'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          All Briefs
+                          Talent Packages
                         </button>
                         <button
-                          onClick={() => setActiveTab('users')}
+                          onClick={() => setActiveTab('all-projects')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'users'
+                            activeTab === 'all-projects'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          User Management
+                          All Projects
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('manage-users')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'manage-users'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Manage Users
                         </button>
                       </>
                     )}
@@ -2224,6 +2357,517 @@ const PeopleSkillsPlatform = () => {
                         <Plus className="w-4 h-4" />
                         <span>Create New Brief</span>
                       </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin: Add Talent Tab */}
+                {activeTab === 'add-talent' && currentUserRole === 'ADMIN' && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">Add New Talent</h2>
+                        <p className="text-sm text-gray-600 mt-1">Manually add talent profiles to the database</p>
+                      </div>
+                      
+                      <div className="p-6">
+                        {/* Success/Error Messages */}
+                        {addTalentMessage.text && (
+                          <div className={`mb-6 p-4 rounded-lg ${
+                            addTalentMessage.type === 'success' 
+                              ? 'bg-green-50 border border-green-200 text-green-800' 
+                              : 'bg-red-50 border border-red-200 text-red-800'
+                          }`}>
+                            {addTalentMessage.text}
+                          </div>
+                        )}
+
+                        <form onSubmit={handleAddTalentSubmit} className="space-y-6">
+                          {/* Personal Information */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Personal Information</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Full Name *
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.fullName}
+                                  onChange={(e) => handleAddTalentFormChange('fullName', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="Enter full name"
+                                  required
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Category
+                                </label>
+                                <select 
+                                  value={addTalentForm.category}
+                                  onChange={(e) => handleAddTalentFormChange('category', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                >
+                                  <option value="">Select category</option>
+                                  <option value="Model">Model</option>
+                                  <option value="Actor">Actor</option>
+                                  <option value="Influencer">Influencer</option>
+                                  <option value="Host">Host</option>
+                                  <option value="Dancer">Dancer</option>
+                                  <option value="Musician">Musician</option>
+                                  <option value="Athlete">Athlete</option>
+                                  <option value="Other">Other</option>
+                                </select>
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Location
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.location}
+                                  onChange={(e) => handleAddTalentFormChange('location', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="City, State"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Height
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.height}
+                                  onChange={(e) => handleAddTalentFormChange('height', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="5'8&quot;"
+                                />
+                              </div>
+                            </div>
+                            <div className="mt-4">
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Bio
+                              </label>
+                              <textarea
+                                rows={3}
+                                value={addTalentForm.bio}
+                                onChange={(e) => handleAddTalentFormChange('bio', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Brief description of the talent..."
+                              />
+                            </div>
+                          </div>
+
+                          {/* Rates */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Rates & Fees</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Daily Rate ($)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={addTalentForm.dailyRate}
+                                  onChange={(e) => handleAddTalentFormChange('dailyRate', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="2500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Half Day Rate ($)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={addTalentForm.halfDayRate}
+                                  onChange={(e) => handleAddTalentFormChange('halfDayRate', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="1500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Usage Fee ($)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={addTalentForm.usageFee}
+                                  onChange={(e) => handleAddTalentFormChange('usageFee', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="1500"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Travel & Accommodation ($)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={addTalentForm.travelAccommodation}
+                                  onChange={(e) => handleAddTalentFormChange('travelAccommodation', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="800"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Agency Commission (%)
+                                </label>
+                                <input
+                                  type="number"
+                                  value={addTalentForm.agencyPercent}
+                                  onChange={(e) => handleAddTalentFormChange('agencyPercent', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="20"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Social Media */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Instagram Handle
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.instagram}
+                                  onChange={(e) => handleAddTalentFormChange('instagram', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="@username"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Instagram Followers
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.instagramFollowers}
+                                  onChange={(e) => handleAddTalentFormChange('instagramFollowers', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="125K"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  TikTok Handle
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.tiktok}
+                                  onChange={(e) => handleAddTalentFormChange('tiktok', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="@username"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  TikTok Followers
+                                </label>
+                                <input
+                                  type="text"
+                                  value={addTalentForm.tiktokFollowers}
+                                  onChange={(e) => handleAddTalentFormChange('tiktokFollowers', e.target.value)}
+                                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                  placeholder="89K"
+                                />
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Status */}
+                          <div>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-4">Status</h3>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">
+                                Approval Status
+                              </label>
+                              <select 
+                                value={addTalentForm.status}
+                                onChange={(e) => handleAddTalentFormChange('status', e.target.value)}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              >
+                                <option value="pending">Pending</option>
+                                <option value="approved">Approved</option>
+                                <option value="rejected">Rejected</option>
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Submit */}
+                          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+                            <button
+                              type="button"
+                              onClick={resetAddTalentForm}
+                              className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="submit"
+                              disabled={addTalentLoading}
+                              className={`px-6 py-2 rounded-lg transition-colors flex items-center space-x-2 ${
+                                addTalentLoading 
+                                  ? 'bg-gray-400 text-white cursor-not-allowed' 
+                                  : 'bg-purple-600 text-white hover:bg-purple-700'
+                              }`}
+                            >
+                              {addTalentLoading ? (
+                                <>
+                                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                  <span>Adding...</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-4 h-4" />
+                                  <span>Add Talent</span>
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin: Talent Packages Tab */}
+                {activeTab === 'talent-packages' && currentUserRole === 'ADMIN' && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">Talent Packages</h2>
+                        <p className="text-sm text-gray-600 mt-1">Curate talent packages for brand projects</p>
+                      </div>
+                      
+                      <div className="p-6">
+                        {/* Project Selection */}
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Select Project
+                          </label>
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option value="">Choose a project to curate talent for...</option>
+                            <option value="project-1">Summer Campaign 2025</option>
+                            <option value="project-2">Fall Fashion Collection</option>
+                            <option value="project-3">Holiday Campaign</option>
+                          </select>
+                        </div>
+
+                        {/* Talent Grid */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {talents.map((talent) => (
+                            <div key={talent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                              <div className="h-48 bg-gray-100 flex items-center justify-center">
+                                <Users className="h-12 w-12 text-gray-400" />
+                              </div>
+                              <div className="p-4">
+                                <div className="flex items-start justify-between mb-2">
+                                  <div>
+                                    <h3 className="text-lg font-semibold text-gray-900">{talent.name}</h3>
+                                    <p className="text-sm text-gray-600">{talent.category}</p>
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Star className="w-4 h-4 text-yellow-400 fill-current" />
+                                    <span className="text-sm text-gray-600">{talent.rating}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center text-sm text-gray-500 mb-3">
+                                  <MapPin className="w-4 h-4 mr-1" />
+                                  {talent.location}
+                                </div>
+                                <div className="text-lg font-semibold text-gray-900 mb-4">
+                                  ${talent.rate.toLocaleString()}
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <button
+                                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
+                                  >
+                                    Add to Package
+                                  </button>
+                                  <button
+                                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                                  >
+                                    View Details
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin: All Projects Tab */}
+                {activeTab === 'all-projects' && currentUserRole === 'ADMIN' && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">All Brand Projects</h2>
+                        <p className="text-sm text-gray-600 mt-1">View and manage all brand projects</p>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {projects.map((project) => (
+                            <div key={project.id} className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow">
+                              <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-gray-900">{project.title}</h3>
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  project.status === 'active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : project.status === 'draft'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {project.status}
+                                </span>
+                              </div>
+                              
+                              <div className="space-y-3 text-sm text-gray-600 mb-4">
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-2" />
+                                  <span>Deadline: {project.deadline}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <DollarSign className="h-4 w-4 mr-2" />
+                                  <span>{project.budget}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <Users className="h-4 w-4 mr-2" />
+                                  <span>{project.numberOfTalent} talent needed</span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex space-x-2">
+                                <button 
+                                  onClick={() => setActiveTab('talent-packages')}
+                                  className="flex-1 bg-purple-600 text-white py-2 rounded-lg text-sm hover:bg-purple-700 transition-colors"
+                                >
+                                  Curate Talent
+                                </button>
+                                <button 
+                                  className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+                                >
+                                  View Details
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Admin: Manage Users Tab */}
+                {activeTab === 'manage-users' && currentUserRole === 'ADMIN' && (
+                  <div className="space-y-6">
+                    <div className="bg-white rounded-lg shadow">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h2 className="text-lg font-medium text-gray-900">User Management</h2>
+                        <p className="text-sm text-gray-600 mt-1">Manage all platform users</p>
+                      </div>
+                      
+                      <div className="p-6">
+                        <div className="overflow-x-auto">
+                          <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-50">
+                              <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  User
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Role
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Status
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Joined
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                  Actions
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                              <tr>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="flex-shrink-0 h-10 w-10">
+                                      <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                                        <span className="text-sm font-medium text-purple-600">JD</span>
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-medium text-gray-900">John Doe</div>
+                                      <div className="text-sm text-gray-500">john@company.com</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">
+                                    Brand
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  2 weeks ago
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  <button className="text-purple-600 hover:text-purple-900 mr-3">Edit</button>
+                                  <button className="text-red-600 hover:text-red-900">Suspend</button>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <div className="flex items-center">
+                                    <div className="flex-shrink-0 h-10 w-10">
+                                      <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                                        <span className="text-sm font-medium text-green-600">SC</span>
+                                      </div>
+                                    </div>
+                                    <div className="ml-4">
+                                      <div className="text-sm font-medium text-gray-900">Sarah Chen</div>
+                                      <div className="text-sm text-gray-500">sarah@model.com</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Talent
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                  <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                                    Active
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  1 month ago
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                  <button className="text-purple-600 hover:text-purple-900 mr-3">Edit</button>
+                                  <button className="text-red-600 hover:text-red-900">Suspend</button>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
@@ -3264,9 +3908,7 @@ const PeopleSkillsPlatform = () => {
               </div>
             </div>
           )}
-        </>
       )}
-    </div>
     </div>
   );
 };
