@@ -127,8 +127,8 @@ export default function DebugPage() {
         <h3>🔧 Troubleshooting Steps:</h3>
         <ol>
           <li>Try the admin login above</li>
-          <li>If it works here but not in the main app, there's a UI issue</li>
-          <li>If it doesn't work here, there's a logic issue</li>
+          <li>If it works here but not in the main app, there&apos;s a UI issue</li>
+          <li>If it doesn&apos;t work here, there&apos;s a logic issue</li>
           <li>Check the browser console for any JavaScript errors</li>
         </ol>
       </div>
