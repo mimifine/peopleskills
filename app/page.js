@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcase, Eye, MapPin, ExternalLink, Upload, X, ThumbsUp, ThumbsDown, Heart, MessageCircle, Calculator, Edit3, Image, Video, Trash2, ChevronLeft, ChevronRight, Play, Check } from 'lucide-react';
-import { db } from '../lib/supabase.js';
+import { supabase } from '../lib/supabase.js';
 
 const PeopleSkillsPlatform = () => {
   // Password protection state
@@ -35,6 +35,10 @@ const PeopleSkillsPlatform = () => {
     category: '',
     location: '',
     height: '',
+    bust: '',
+    waist: '',
+    hips: '',
+    shoeSize: '',
     bio: '',
     dailyRate: '',
     halfDayRate: '',
@@ -45,11 +49,20 @@ const PeopleSkillsPlatform = () => {
     instagramFollowers: '',
     tiktok: '',
     tiktokFollowers: '',
+    agencyLink: '',
+    modelsComLink: '',
     status: 'pending'
   });
   
   const [addTalentLoading, setAddTalentLoading] = useState(false);
   const [addTalentMessage, setAddTalentMessage] = useState({ type: '', text: '' });
+  const [showSuccessNotification, setShowSuccessNotification] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+
+  // Media upload state
+  const [uploadedPhotos, setUploadedPhotos] = useState([]);
+  const [uploadedVideos, setUploadedVideos] = useState([]);
+  const [uploadLoading, setUploadLoading] = useState(false);
 
   // Mock users for authentication
   const mockUsers = [
@@ -91,6 +104,10 @@ const PeopleSkillsPlatform = () => {
       category: '',
       location: '',
       height: '',
+      bust: '',
+      waist: '',
+      hips: '',
+      shoeSize: '',
       bio: '',
       dailyRate: '',
       halfDayRate: '',
@@ -101,8 +118,12 @@ const PeopleSkillsPlatform = () => {
       instagramFollowers: '',
       tiktok: '',
       tiktokFollowers: '',
+      agencyLink: '',
+      modelsComLink: '',
       status: 'pending'
     });
+    setUploadedPhotos([]);
+    setUploadedVideos([]);
     setAddTalentMessage({ type: '', text: '' });
   };
 
@@ -113,53 +134,102 @@ const PeopleSkillsPlatform = () => {
       setAddTalentMessage({ type: 'error', text: 'Full name is required' });
       return;
     }
-
+  
     setAddTalentLoading(true);
     setAddTalentMessage({ type: '', text: '' });
-
+  
     try {
+      console.log('🔄 Starting talent profile creation...');
+      console.log('📝 Raw form data:', addTalentForm);
+      console.log('🔗 Supabase client:', supabase);
+      console.log('🌐 Environment check:', {
+        url: process.env.NEXT_PUBLIC_SUPABASE_URL ? 'Set' : 'Missing',
+        key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
+      });
+
+      // Build socials object only if data exists
       const socials = {};
-      if (addTalentForm.instagram) {
+      if (addTalentForm.instagram && addTalentForm.instagram.trim()) {
         socials.instagram = {
           handle: addTalentForm.instagram,
           url: `https://instagram.com/${addTalentForm.instagram.replace('@', '')}`,
-          followers: addTalentForm.instagramFollowers || 0
+          followers: addTalentForm.instagramFollowers ? parseInt(addTalentForm.instagramFollowers) : 0
         };
       }
-      if (addTalentForm.tiktok) {
+      if (addTalentForm.tiktok && addTalentForm.tiktok.trim()) {
         socials.tiktok = {
           handle: addTalentForm.tiktok,
           url: `https://tiktok.com/@${addTalentForm.tiktok.replace('@', '')}`,
-          followers: addTalentForm.tiktokFollowers || 0
+          followers: addTalentForm.tiktokFollowers ? parseInt(addTalentForm.tiktokFollowers) : 0
         };
       }
-
+  
+      // Prepare data - convert empty strings to null
       const talentData = {
-        full_name: addTalentForm.fullName,
-        bio: addTalentForm.bio,
-        category: addTalentForm.category,
-        location: addTalentForm.location,
+        full_name: addTalentForm.fullName.trim(),
+        bio: addTalentForm.bio.trim() || null,
+        category: addTalentForm.category.trim() || null,
+        location: addTalentForm.location.trim() || null,
+        height: addTalentForm.height.trim() || null,
+        bust: addTalentForm.bust.trim() || null,
+        waist: addTalentForm.waist.trim() || null,
+        hips: addTalentForm.hips.trim() || null,
+        shoe_size: addTalentForm.shoeSize.trim() || null,
         daily_rate: addTalentForm.dailyRate ? parseInt(addTalentForm.dailyRate) : null,
         half_day_rate: addTalentForm.halfDayRate ? parseInt(addTalentForm.halfDayRate) : null,
         usage_fee: addTalentForm.usageFee ? parseInt(addTalentForm.usageFee) : null,
         travel_accommodation: addTalentForm.travelAccommodation ? parseInt(addTalentForm.travelAccommodation) : null,
         agency_percent: addTalentForm.agencyPercent ? parseInt(addTalentForm.agencyPercent) : null,
-        height: addTalentForm.height,
-        socials: socials,
-        status: addTalentForm.status
+        socials: Object.keys(socials).length > 0 ? socials : null,
+        agency_link: addTalentForm.agencyLink.trim() || null,
+        models_com_link: addTalentForm.modelsComLink.trim() || null,
+        photos: uploadedPhotos.length > 0 ? uploadedPhotos.map(p => ({ url: p.preview, filename: p.file.name })) : [],
+        videos: uploadedVideos.length > 0 ? uploadedVideos.map(v => ({ url: v.preview, filename: v.file.name })) : [],
+        status: addTalentForm.status || 'pending',
+        created_at: new Date().toISOString()
       };
-
-      const result = await db.talentProfiles.create(talentData);
-      
-      if (result.error) {
-        throw new Error(result.error.message);
+  
+      console.log('📤 Submitting talent data:', talentData);
+      console.log('🎯 Target table: talent_profiles');
+  
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('talent_profiles')
+        .insert([talentData])
+        .select();
+  
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        console.error('❌ Error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw new Error(error.message || 'Failed to create talent profile');
       }
-
-      setAddTalentMessage({ type: 'success', text: 'Talent profile created successfully!' });
+  
+      console.log('✅ Success! Created talent:', data);
+      
+      // Show success notification
+      setSuccessMessage(`🎉 Success! "${addTalentForm.fullName}" has been added to the talent database.`);
+      setShowSuccessNotification(true);
+      
+      // Clear form immediately
       resetAddTalentForm();
+      
+      // Hide notification after 5 seconds
+      setTimeout(() => {
+        setShowSuccessNotification(false);
+      }, 5000);
+  
     } catch (error) {
-      console.error('Error creating talent profile:', error);
-      setAddTalentMessage({ type: 'error', text: error.message || 'Failed to create talent profile' });
+      console.error('❌ Error creating talent profile:', error);
+      console.error('❌ Error stack:', error.stack);
+      setAddTalentMessage({ 
+        type: 'error', 
+        text: error.message || 'Failed to create talent profile. Please try again.' 
+      });
     } finally {
       setAddTalentLoading(false);
     }
@@ -226,6 +296,61 @@ const PeopleSkillsPlatform = () => {
     }
   };
 
+  // Media upload handlers
+  const handlePhotoUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newPhotos = files.map(file => ({
+      id: Date.now() + Math.random(),
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+    
+    if (uploadedPhotos.length + newPhotos.length <= 10) {
+      setUploadedPhotos(prev => [...prev, ...newPhotos]);
+    } else {
+      alert('Maximum 10 photos allowed');
+    }
+  };
+
+  const handleVideoUpload = (e) => {
+    const files = Array.from(e.target.files);
+    const newVideos = files.map(file => ({
+      id: Date.now() + Math.random(),
+      file,
+      preview: URL.createObjectURL(file)
+    }));
+    
+    if (uploadedVideos.length + newVideos.length <= 5) {
+      setUploadedVideos(prev => [...prev, ...newVideos]);
+    } else {
+      alert('Maximum 5 videos allowed');
+    }
+  };
+
+  const removePhoto = (id) => {
+    setUploadedPhotos(prev => prev.filter(photo => photo.id !== id));
+  };
+
+  const removeVideo = (id) => {
+    setUploadedVideos(prev => prev.filter(video => video.id !== id));
+  };
+
+  // Success notification component
+  const SuccessNotification = ({ message, onClose }) => {
+    return (
+      <div className="fixed top-4 right-4 z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center space-x-3 animate-in slide-in-from-right duration-300">
+        <Check className="h-5 w-5" />
+        <span className="font-medium">{message}</span>
+        <button
+          onClick={onClose}
+          className="ml-2 hover:bg-green-600 rounded p-1 transition-colors"
+        >
+          <X className="h-4 w-4" />
+        </button>
+      </div>
+    );
+  };
+
   // Password protection screen
   if (isPasswordProtected) {
     return (
@@ -272,46 +397,46 @@ const PeopleSkillsPlatform = () => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-lg font-semibold text-gray-900">
               {authMode === 'login' ? 'Sign In' : 'Sign Up'}
             </h2>
             <button
               onClick={() => setShowAuthModal(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-400 hover:text-gray-600"
             >
-              <X className="h-5 w-5" />
+              <X className="h-6 w-6" />
             </button>
           </div>
-
-          <form className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Email
-              </label>
-              <input
-                type="email"
-                value={authForm.email}
-                onChange={(e) => handleAuthFormChange('email', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Enter your email"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password
-              </label>
-              <input
-                type="password"
-                value={authForm.password}
-                onChange={(e) => handleAuthFormChange('password', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                placeholder="Enter your password"
-              />
-            </div>
-
-            {authMode === 'signup' && (
-              <>
+          
+          <form onSubmit={(e) => { e.preventDefault(); authMode === 'login' ? handleLogin() : handleSignup(); }}>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  value={authForm.email}
+                  onChange={(e) => handleAuthFormChange('email', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password
+                </label>
+                <input
+                  type="password"
+                  value={authForm.password}
+                  onChange={(e) => handleAuthFormChange('password', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              
+              {authMode === 'signup' && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Full Name
@@ -321,43 +446,28 @@ const PeopleSkillsPlatform = () => {
                     value={authForm.fullName}
                     onChange={(e) => handleAuthFormChange('fullName', e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter your full name"
+                    required
                   />
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    value={authForm.companyName}
-                    onChange={(e) => handleAuthFormChange('companyName', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    placeholder="Enter your company name"
-                  />
-                </div>
-              </>
-            )}
-
-            <button
-              type="button"
-              onClick={authMode === 'login' ? handleLogin : handleSignup}
-              className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-            >
-              {authMode === 'login' ? 'Sign In' : 'Sign Up'}
-            </button>
-
-            <div className="text-center">
+              )}
+              
               <button
-                type="button"
-                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                className="text-purple-600 hover:text-purple-700 text-sm"
+                type="submit"
+                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
               >
-                {authMode === 'login' ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+                {authMode === 'login' ? 'Sign In' : 'Sign Up'}
               </button>
             </div>
           </form>
+          
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+              className="text-purple-600 hover:text-purple-700 text-sm"
+            >
+              {authMode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -369,19 +479,19 @@ const PeopleSkillsPlatform = () => {
       
       {!isAuthenticated ? (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold text-gray-900 mb-4">People Skills</h1>
-            <p className="text-gray-600 mb-8">The future of talent casting</p>
-            <div className="space-x-4">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">People Skills</h1>
+            <p className="text-gray-600 mb-6">Talent casting platform for brands and agencies</p>
+            <div className="space-y-3">
               <button
                 onClick={() => openAuthModal('login')}
-                className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors"
+                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Sign In
               </button>
               <button
                 onClick={() => openAuthModal('signup')}
-                className="border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition-colors"
+                className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 Sign Up
               </button>
@@ -508,12 +618,19 @@ const PeopleSkillsPlatform = () => {
                   <div className="p-6">
                     {/* Success/Error Messages */}
                     {addTalentMessage.text && (
-                      <div className={`mb-4 p-3 rounded-lg ${
+                      <div className={`mb-6 p-4 rounded-lg border-2 ${
                         addTalentMessage.type === 'success' 
-                          ? 'bg-green-100 text-green-700 border border-green-200' 
-                          : 'bg-red-100 text-red-700 border border-red-200'
+                          ? 'bg-green-50 text-green-800 border-green-300' 
+                          : 'bg-red-50 text-red-800 border-red-300'
                       }`}>
-                        {addTalentMessage.text}
+                        <div className="flex items-center">
+                          {addTalentMessage.type === 'success' ? (
+                            <Check className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
+                          ) : (
+                            <X className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+                          )}
+                          <span className="font-medium">{addTalentMessage.text}</span>
+                        </div>
                       </div>
                     )}
 
@@ -546,8 +663,7 @@ const PeopleSkillsPlatform = () => {
                             >
                               <option value="">Select category</option>
                               <option value="Model">Model</option>
-                              <option value="Actor">Actor</option>
-                              <option value="Influencer">Influencer</option>
+                              <option value="Artist">Artist</option>
                               <option value="Athlete">Athlete</option>
                               <option value="Musician">Musician</option>
                             </select>
@@ -576,6 +692,54 @@ const PeopleSkillsPlatform = () => {
                               placeholder="5'8&quot;"
                             />
                           </div>
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Bust
+                          </label>
+                          <input
+                            type="text"
+                            value={addTalentForm.bust}
+                            onChange={(e) => handleAddTalentFormChange('bust', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="34"
+                          />
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Waist
+                          </label>
+                          <input
+                            type="text"
+                            value={addTalentForm.waist}
+                            onChange={(e) => handleAddTalentFormChange('waist', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="24"
+                          />
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Hips
+                          </label>
+                          <input
+                            type="text"
+                            value={addTalentForm.hips}
+                            onChange={(e) => handleAddTalentFormChange('hips', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="36"
+                          />
+                        </div>
+                        <div className="mt-4">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Shoe Size
+                          </label>
+                          <input
+                            type="text"
+                            value={addTalentForm.shoeSize}
+                            onChange={(e) => handleAddTalentFormChange('shoeSize', e.target.value)}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="7"
+                          />
                         </div>
                         <div className="mt-4">
                           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -628,7 +792,7 @@ const PeopleSkillsPlatform = () => {
                               value={addTalentForm.usageFee}
                               onChange={(e) => handleAddTalentFormChange('usageFee', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="1500"
+                              placeholder="5000"
                             />
                           </div>
                           <div>
@@ -640,12 +804,12 @@ const PeopleSkillsPlatform = () => {
                               value={addTalentForm.travelAccommodation}
                               onChange={(e) => handleAddTalentFormChange('travelAccommodation', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="800"
+                              placeholder="1000"
                             />
                           </div>
                           <div>
                             <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Agency Percentage (%)
+                              Agency Percent (%)
                             </label>
                             <input
                               type="number"
@@ -683,7 +847,7 @@ const PeopleSkillsPlatform = () => {
                               value={addTalentForm.instagramFollowers}
                               onChange={(e) => handleAddTalentFormChange('instagramFollowers', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="50K"
+                              placeholder="10K"
                             />
                           </div>
                           <div>
@@ -707,9 +871,139 @@ const PeopleSkillsPlatform = () => {
                               value={addTalentForm.tiktokFollowers}
                               onChange={(e) => handleAddTalentFormChange('tiktokFollowers', e.target.value)}
                               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                              placeholder="100K"
+                              placeholder="50K"
                             />
                           </div>
+                        </div>
+                      </div>
+
+                      {/* Agency Links */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Agency Links</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Agency Link
+                            </label>
+                            <input
+                              type="url"
+                              value={addTalentForm.agencyLink}
+                              onChange={(e) => handleAddTalentFormChange('agencyLink', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="https://agency.com/talent-profile"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Models.com Link
+                            </label>
+                            <input
+                              type="url"
+                              value={addTalentForm.modelsComLink}
+                              onChange={(e) => handleAddTalentFormChange('modelsComLink', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="https://models.com/talent-name"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Media Upload */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Media Upload</h3>
+                        
+                        {/* Photos Upload */}
+                        <div className="mb-6">
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Photos ({uploadedPhotos.length}/10)
+                          </label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <input
+                              type="file"
+                              multiple
+                              accept="image/*"
+                              onChange={handlePhotoUpload}
+                              className="hidden"
+                              id="photo-upload"
+                            />
+                            <label htmlFor="photo-upload" className="cursor-pointer">
+                              <Upload className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                              <p className="text-sm text-gray-600 mb-2">
+                                Click to upload photos or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                PNG, JPG, GIF up to 10MB each. Maximum 10 photos.
+                              </p>
+                            </label>
+                          </div>
+                          
+                          {/* Uploaded Photos Preview */}
+                          {uploadedPhotos.length > 0 && (
+                            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+                              {uploadedPhotos.map((photo) => (
+                                <div key={photo.id} className="relative group">
+                                  <img
+                                    src={photo.preview}
+                                    alt="Preview"
+                                    className="w-full h-32 object-cover rounded-lg"
+                                  />
+                                  <button
+                                    onClick={() => removePhoto(photo.id)}
+                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Videos Upload */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">
+                            Videos ({uploadedVideos.length}/5)
+                          </label>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <input
+                              type="file"
+                              multiple
+                              accept="video/*"
+                              onChange={handleVideoUpload}
+                              className="hidden"
+                              id="video-upload"
+                            />
+                            <label htmlFor="video-upload" className="cursor-pointer">
+                              <Video className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                              <p className="text-sm text-gray-600 mb-2">
+                                Click to upload videos or drag and drop
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                MP4, MOV up to 100MB each. Maximum 5 videos.
+                              </p>
+                            </label>
+                          </div>
+                          
+                          {/* Uploaded Videos Preview */}
+                          {uploadedVideos.length > 0 && (
+                            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {uploadedVideos.map((video) => (
+                                <div key={video.id} className="relative group">
+                                  <video
+                                    src={video.preview}
+                                    className="w-full h-32 object-cover rounded-lg"
+                                    controls
+                                  />
+                                  <button
+                                    onClick={() => removeVideo(video.id)}
+                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
 
@@ -787,8 +1081,16 @@ const PeopleSkillsPlatform = () => {
           </main>
         </>
       )}
+      
+      {/* Success Notification */}
+      {showSuccessNotification && (
+        <SuccessNotification
+          message={successMessage}
+          onClose={() => setShowSuccessNotification(false)}
+        />
+      )}
     </div>
   );
 };
 
-export default PeopleSkillsPlatform; 
+export default PeopleSkillsPlatform;
