@@ -82,7 +82,41 @@ const PeopleSkillsPlatform = () => {
   });
   const [briefLoading, setBriefLoading] = useState(false);
   const [briefMessage, setBriefMessage] = useState({ type: '', text: '' });
-  const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([
+    {
+      id: 1,
+      title: 'Spring Fashion Campaign',
+      description: 'Looking for models for our spring collection launch',
+      budget_min: 2000,
+      budget_max: 5000,
+      location: 'Los Angeles, CA',
+      number_of_talent: 3,
+      status: 'active',
+      created_at: '2024-01-15'
+    },
+    {
+      id: 2,
+      title: 'Beauty Product Launch',
+      description: 'Seeking influencers for skincare line promotion',
+      budget_min: 1500,
+      budget_max: 3000,
+      location: 'New York, NY',
+      number_of_talent: 2,
+      status: 'draft',
+      created_at: '2024-01-10'
+    },
+    {
+      id: 3,
+      title: 'Lifestyle Magazine Feature',
+      description: 'Editorial shoot for upcoming lifestyle feature',
+      budget_min: 1000,
+      budget_max: 2500,
+      location: 'Miami, FL',
+      number_of_talent: 1,
+      status: 'completed',
+      created_at: '2024-01-05'
+    }
+  ]);
   const [talents, setTalents] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [talentRequirements, setTalentRequirements] = useState([
@@ -858,6 +892,40 @@ const PeopleSkillsPlatform = () => {
                           }`}
                         >
                           Browse Talent
+                        </button>
+                      </>
+                    )}
+                    {currentUserRole === 'DIRECT_TALENT' && (
+                      <>
+                        <button
+                          onClick={() => setActiveTab('dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('profile')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'profile'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Profile
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('opportunities')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'opportunities'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Opportunities
                         </button>
                       </>
                     )}
@@ -1860,13 +1928,377 @@ const PeopleSkillsPlatform = () => {
                   </div>
                   
                   <div className="p-6">
-                    <div className="text-center py-12">
-                      <Users className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">Talent browsing coming soon</h3>
-                      <p className="mt-1 text-sm text-gray-500">This feature will allow you to browse and favorite talent profiles.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {/* Mock Talent Cards */}
+                      {[
+                        {
+                          id: 1,
+                          name: 'Vittoria Ceretti',
+                          category: 'Fashion Model',
+                          location: 'Milan, Italy',
+                          rate: 5000,
+                          rating: 4.9,
+                          image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
+                          bio: 'International fashion model with extensive runway and editorial experience.',
+                          socials: { instagram: 850000, tiktok: 120000 }
+                        },
+                        {
+                          id: 2,
+                          name: 'Sarah Chen',
+                          category: 'Lifestyle Model',
+                          location: 'Los Angeles, CA',
+                          rate: 2500,
+                          rating: 4.7,
+                          image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
+                          bio: 'Lifestyle influencer and commercial model specializing in beauty and fashion.',
+                          socials: { instagram: 125000, tiktok: 89000 }
+                        },
+                        {
+                          id: 3,
+                          name: 'Marcus Johnson',
+                          category: 'Fitness Model',
+                          location: 'Miami, FL',
+                          rate: 3000,
+                          rating: 4.8,
+                          image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
+                          bio: 'Professional fitness model and personal trainer with 8+ years experience.',
+                          socials: { instagram: 200000, tiktok: 150000 }
+                        }
+                      ].map((talent) => (
+                        <div key={talent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                          <div className="relative">
+                            <img
+                              src={talent.image}
+                              alt={talent.name}
+                              className="w-full h-64 object-cover"
+                            />
+                            <button
+                              onClick={() => handleFavorite(talent.id)}
+                              className={`absolute top-3 right-3 p-2 rounded-full ${
+                                favorites.includes(talent.id)
+                                  ? 'bg-red-500 text-white'
+                                  : 'bg-white text-gray-400 hover:text-red-500'
+                              }`}
+                            >
+                              <Heart className={`h-5 w-5 ${favorites.includes(talent.id) ? 'fill-current' : ''}`} />
+                            </button>
+                          </div>
+                          
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="text-lg font-semibold text-gray-900">{talent.name}</h3>
+                              <div className="flex items-center">
+                                <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                                <span className="text-sm ml-1">{talent.rating}</span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-sm text-gray-600 mb-2">{talent.category}</p>
+                            <p className="text-sm text-gray-600 mb-3 flex items-center">
+                              <MapPin className="h-3 w-3 mr-1" />
+                              {talent.location}
+                            </p>
+                            
+                            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{talent.bio}</p>
+                            
+                            <div className="flex justify-between items-center mb-3">
+                              <div className="flex items-center text-green-600">
+                                <DollarSign className="h-4 w-4" />
+                                <span className="font-semibold">{talent.rate.toLocaleString()}</span>
+                                <span className="text-sm text-gray-500 ml-1">/day</span>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {talent.socials.instagram.toLocaleString()} followers
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-2">
+                              <button className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                                View Profile
+                              </button>
+                              <button className="flex-1 px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                Contact
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
+              </div>
+            )}
+
+            {/* Talent Interface */}
+            {currentUserRole === 'DIRECT_TALENT' && (
+              <div className="space-y-6">
+                {/* Talent Dashboard */}
+                {activeTab === 'dashboard' && (
+                  <div className="bg-white rounded-lg shadow">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h2 className="text-lg font-medium text-gray-900">Talent Dashboard</h2>
+                      <p className="text-sm text-gray-600 mt-1">Manage your profile and view opportunities</p>
+                    </div>
+                    
+                    <div className="p-6">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="bg-blue-50 rounded-lg p-4">
+                          <div className="flex items-center">
+                            <Briefcase className="h-8 w-8 text-blue-600" />
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-blue-600">Active Projects</p>
+                              <p className="text-2xl font-bold text-blue-900">3</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-green-50 rounded-lg p-4">
+                          <div className="flex items-center">
+                            <DollarSign className="h-8 w-8 text-green-600" />
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-green-600">This Month</p>
+                              <p className="text-2xl font-bold text-green-900">$12,500</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-purple-50 rounded-lg p-4">
+                          <div className="flex items-center">
+                            <Star className="h-8 w-8 text-purple-600" />
+                            <div className="ml-3">
+                              <p className="text-sm font-medium text-purple-600">Rating</p>
+                              <p className="text-2xl font-bold text-purple-900">4.8</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium text-gray-900">Recent Opportunities</h3>
+                        <div className="space-y-3">
+                          {[
+                            { id: 1, title: 'Fashion Campaign - Spring Collection', brand: 'Nike', budget: '$3,500', status: 'Pending' },
+                            { id: 2, title: 'Beauty Product Launch', brand: 'Sephora', budget: '$2,800', status: 'Accepted' },
+                            { id: 3, title: 'Lifestyle Magazine Feature', brand: 'Vogue', budget: '$1,500', status: 'Completed' }
+                          ].map((opportunity) => (
+                            <div key={opportunity.id} className="border border-gray-200 rounded-lg p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium text-gray-900">{opportunity.title}</h4>
+                                  <p className="text-sm text-gray-600">{opportunity.brand}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-medium text-green-600">{opportunity.budget}</p>
+                                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                    opportunity.status === 'Accepted' ? 'bg-green-100 text-green-800' :
+                                    opportunity.status === 'Completed' ? 'bg-blue-100 text-blue-800' :
+                                    'bg-yellow-100 text-yellow-800'
+                                  }`}>
+                                    {opportunity.status}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Talent Profile Management */}
+                {activeTab === 'profile' && (
+                  <div className="bg-white rounded-lg shadow">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h2 className="text-lg font-medium text-gray-900">Profile Management</h2>
+                      <p className="text-sm text-gray-600 mt-1">Update your talent profile and portfolio</p>
+                    </div>
+                    
+                    <div className="p-6">
+                      <div className="space-y-6">
+                        {/* Profile Photo Upload */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Profile Photos</h3>
+                          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                            <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-600">Upload your best photos</p>
+                            <button className="mt-2 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                              Choose Files
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Basic Information */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="Your full name"
+                                defaultValue="Sarah Chen"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                              <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                <option>Model</option>
+                                <option>Actor</option>
+                                <option>Influencer</option>
+                                <option>Athlete</option>
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Location</label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="City, State"
+                                defaultValue="Los Angeles, CA"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Daily Rate ($)</label>
+                              <input
+                                type="number"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="2500"
+                                defaultValue="2500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Bio */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Bio</label>
+                          <textarea
+                            rows={4}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            placeholder="Tell brands about yourself..."
+                            defaultValue="Professional model with 5+ years experience in fashion and commercial modeling. Specializing in lifestyle, beauty, and fashion photography."
+                          />
+                        </div>
+
+                        {/* Social Media */}
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Social Media</h3>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">Instagram Handle</label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="@username"
+                                defaultValue="@sarahchen"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium text-gray-700 mb-2">TikTok Handle</label>
+                              <input
+                                type="text"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                placeholder="@username"
+                                defaultValue="@sarahchenofficial"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Save Button */}
+                        <div className="flex justify-end">
+                          <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
+                            Save Changes
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Talent Opportunities */}
+                {activeTab === 'opportunities' && (
+                  <div className="bg-white rounded-lg shadow">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h2 className="text-lg font-medium text-gray-900">Available Opportunities</h2>
+                      <p className="text-sm text-gray-600 mt-1">Browse and apply for casting opportunities</p>
+                    </div>
+                    
+                    <div className="p-6">
+                      <div className="space-y-4">
+                        {[
+                          {
+                            id: 1,
+                            title: 'Fashion Campaign - Spring Collection',
+                            brand: 'Nike',
+                            description: 'Looking for athletic models for our spring sportswear campaign.',
+                            budget: '$3,500',
+                            location: 'Los Angeles, CA',
+                            shootDate: '2024-03-15',
+                            requirements: 'Athletic build, 5\'8"+, Experience with sports photography'
+                          },
+                          {
+                            id: 2,
+                            title: 'Beauty Product Launch',
+                            brand: 'Sephora',
+                            description: 'Seeking models for our new skincare line launch campaign.',
+                            budget: '$2,800',
+                            location: 'New York, NY',
+                            shootDate: '2024-03-20',
+                            requirements: 'Clear skin, 18-25 age range, Experience with beauty photography'
+                          },
+                          {
+                            id: 3,
+                            title: 'Lifestyle Magazine Feature',
+                            brand: 'Vogue',
+                            description: 'Editorial shoot for upcoming lifestyle feature.',
+                            budget: '$1,500',
+                            location: 'Miami, FL',
+                            shootDate: '2024-03-25',
+                            requirements: 'Fashion-forward, 5\'7"+, Editorial experience preferred'
+                          }
+                        ].map((opportunity) => (
+                          <div key={opportunity.id} className="border border-gray-200 rounded-lg p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-medium text-gray-900">{opportunity.title}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{opportunity.brand}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-medium text-green-600">{opportunity.budget}</p>
+                                <p className="text-sm text-gray-500">{opportunity.location}</p>
+                              </div>
+                            </div>
+                            
+                            <p className="text-gray-700 mb-4">{opportunity.description}</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-700">Shoot Date:</span>
+                                <span className="ml-2 text-gray-600">{opportunity.shootDate}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Requirements:</span>
+                                <span className="ml-2 text-gray-600">{opportunity.requirements}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="flex space-x-3">
+                              <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                Apply Now
+                              </button>
+                              <button className="flex-1 px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50">
+                                Save for Later
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </main>
