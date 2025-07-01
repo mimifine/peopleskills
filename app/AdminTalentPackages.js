@@ -90,7 +90,7 @@ const AdminTalentPackages = () => {
     setPackages(mockPackages);
     setTemplates(mockTemplates);
     setLoading(false);
-  }, []);
+  }, [mockPackages, mockTemplates]);
 
   const handleCloneTemplate = (template) => {
     setSelectedTemplate(template);
@@ -304,7 +304,7 @@ const AdminTalentPackages = () => {
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">Create Package from Template</h3>
             <p className="text-gray-600 mb-4">
-              Create a new package based on "{selectedTemplate.name}" template?
+              Create a new package based on &quot;{selectedTemplate.name}&quot; template?
             </p>
             <div className="flex justify-end space-x-3">
               <button
