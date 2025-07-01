@@ -17,12 +17,7 @@ const AdminProjectDashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      console.log('🔄 Fetching projects from Supabase...');
-      
       // For now, let's always use mock data to ensure it shows up
-      console.log('📝 Using mock data for demonstration...');
-      
-      // Fallback to mock data if Supabase fails
       const mockProjects = [
         {
           id: 1,
@@ -123,21 +118,13 @@ const AdminProjectDashboard = () => {
         }
       ];
       setProjects(mockProjects);
-      console.log('✅ Mock projects set:', mockProjects);
     } finally {
       setLoading(false);
     }
   };
 
-  // Debug logging
-  console.log('🔍 Current projects state:', projects);
-  console.log('🔍 Loading state:', loading);
-  console.log('🔍 Search term:', searchTerm);
-  console.log('🔍 Status filter:', statusFilter);
-
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
-    console.log('🔍 Filtering projects, total count:', projects.length);
     let filtered = projects.filter(project => {
       const matchesSearch = project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                            (project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -384,17 +371,7 @@ const AdminProjectDashboard = () => {
         </div>
       </div>
 
-      {/* Debug Info */}
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-          <p><strong>Debug Info:</strong></p>
-          <p>Loading: {loading.toString()}</p>
-          <p>Total Projects: {projects.length}</p>
-          <p>Filtered Projects: {filteredAndSortedProjects.length}</p>
-          <p>Search Term: "{searchTerm}"</p>
-          <p>Status Filter: "{statusFilter}"</p>
-        </div>
-      </div>
+
 
       {/* Projects Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">
