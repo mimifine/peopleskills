@@ -5,6 +5,7 @@ import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcas
 import { supabase } from '../lib/supabase.js';
 import AdminTalentManagement from './AdminTalentManagement.js';
 import AdminProjectDashboard from './AdminProjectDashboard.js';
+import AdminTalentPackages from './AdminTalentPackages.js';
 
 const PeopleSkillsPlatform = () => {
   // Password protection state
@@ -806,64 +807,34 @@ const PeopleSkillsPlatform = () => {
                           Dashboard
                         </button>
                         <button
-                          onClick={() => setActiveTab('add-talent')}
+                          onClick={() => setActiveTab('projects')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'add-talent'
+                            activeTab === 'projects'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          Add Talent
+                          Projects
                         </button>
                         <button
-                          onClick={() => setActiveTab('talent-management')}
+                          onClick={() => setActiveTab('talent')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'talent-management'
+                            activeTab === 'talent'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          Talent Management
+                          Talent
                         </button>
                         <button
-                          onClick={() => setActiveTab('talent-packages')}
+                          onClick={() => setActiveTab('users')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'talent-packages'
+                            activeTab === 'users'
                               ? 'bg-purple-100 text-purple-700'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
                           }`}
                         >
-                          Talent Packages
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('all-projects')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'all-projects'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          All Projects
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('project-dashboard')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'project-dashboard'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          Project Dashboard
-                        </button>
-                        <button
-                          onClick={() => setActiveTab('manage-users')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'manage-users'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
-                        >
-                          Manage Users
+                          Users
                         </button>
                       </>
                     )}
@@ -987,14 +958,40 @@ const PeopleSkillsPlatform = () => {
           </header>
 
           <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            {/* Admin: Talent Management Tab */}
-            {activeTab === 'talent-management' && currentUserRole === 'ADMIN' && (
-              <AdminTalentManagement />
+            {/* Admin: Talent Tab */}
+            {activeTab === 'talent' && currentUserRole === 'ADMIN' && (
+              <div className="space-y-6">
+                {/* Add Talent Button */}
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900">Talent Management</h2>
+                  <button
+                    onClick={() => setActiveTab('add-talent')}
+                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    <span>Add Talent</span>
+                  </button>
+                </div>
+                
+                {/* Talent Management Component */}
+                <AdminTalentManagement />
+              </div>
             )}
 
-            {/* Admin: Add Talent Tab */}
+            {/* Admin: Add Talent Sub-tab */}
             {activeTab === 'add-talent' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
+                {/* Back Button */}
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={() => setActiveTab('talent')}
+                    className="flex items-center space-x-2 text-gray-600 hover:text-gray-900 transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>Back to Talent Management</span>
+                  </button>
+                </div>
+                
                 <div className="bg-white rounded-lg shadow">
                   <div className="px-6 py-4 border-b border-gray-200">
                     <h2 className="text-lg font-medium text-gray-900">Add New Talent</h2>
@@ -1415,42 +1412,73 @@ const PeopleSkillsPlatform = () => {
             {activeTab === 'dashboard' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">Admin Dashboard</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h2>
+                  
+                  {/* Stats Overview */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div className="bg-purple-50 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <Briefcase className="h-8 w-8 text-purple-600" />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-purple-600">Total Projects</p>
+                          <p className="text-2xl font-bold text-purple-900">4</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <Users className="h-8 w-8 text-blue-600" />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-blue-600">Total Talent</p>
+                          <p className="text-2xl font-bold text-blue-900">12</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-green-50 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <User className="h-8 w-8 text-green-600" />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-green-600">Brand Users</p>
+                          <p className="text-2xl font-bold text-green-900">8</p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="bg-yellow-50 rounded-lg p-4">
+                      <div className="flex items-center">
+                        <Star className="h-8 w-8 text-yellow-600" />
+                        <div className="ml-3">
+                          <p className="text-sm font-medium text-yellow-600">Active Packages</p>
+                          <p className="text-2xl font-bold text-yellow-900">6</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <p className="text-gray-600">Welcome to the admin dashboard. Use the navigation tabs above to manage the platform.</p>
                 </div>
               </div>
             )}
 
-            {/* Admin: Talent Packages Tab */}
-            {activeTab === 'talent-packages' && currentUserRole === 'ADMIN' && (
+            {/* Admin: Projects Tab */}
+            {activeTab === 'projects' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">Talent Packages</h2>
-                  <p className="text-gray-600">Manage talent packages for different projects.</p>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-2xl font-bold text-gray-900">Projects & Talent Packages</h2>
                 </div>
+                
+                {/* Project Dashboard */}
+                <AdminProjectDashboard />
+                
+                {/* Talent Packages Section */}
+                <AdminTalentPackages />
               </div>
             )}
 
-            {/* Admin: All Projects Tab */}
-            {activeTab === 'all-projects' && currentUserRole === 'ADMIN' && (
+            {/* Admin: Users Tab */}
+            {activeTab === 'users' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">All Projects</h2>
-                  <p className="text-gray-600">View and manage all projects in the system.</p>
-                </div>
-              </div>
-            )}
-
-            {/* Admin: Project Dashboard Tab */}
-                                {activeTab === 'project-dashboard' && currentUserRole === 'ADMIN' && (
-                      <AdminProjectDashboard />
-                    )}
-
-            {/* Admin: Manage Users Tab */}
-            {activeTab === 'manage-users' && currentUserRole === 'ADMIN' && (
-              <div className="space-y-6">
-                <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-lg font-medium text-gray-900 mb-4">Manage Users</h2>
+                  <h2 className="text-lg font-medium text-gray-900 mb-4">Users</h2>
                   <p className="text-gray-600">Manage user accounts and permissions.</p>
                 </div>
               </div>

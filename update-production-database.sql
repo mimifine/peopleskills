@@ -66,4 +66,15 @@ SELECT
     'Schema update completed successfully!' as status,
     COUNT(*) as total_columns
 FROM information_schema.columns 
-WHERE table_name = 'talent_profiles'; 
+WHERE table_name = 'talent_profiles';
+
+-- Add template functionality to talent_packages table
+ALTER TABLE talent_packages ADD COLUMN is_template boolean DEFAULT false;
+ALTER TABLE talent_packages ADD COLUMN template_name text;
+
+-- Add comments for documentation
+COMMENT ON COLUMN talent_packages.is_template IS 'Indicates if this package is a reusable template';
+COMMENT ON COLUMN talent_packages.template_name IS 'Name of the template for easy identification';
+
+-- Create index for template queries
+CREATE INDEX idx_talent_packages_templates ON talent_packages(is_template) WHERE is_template = true; 
