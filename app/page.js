@@ -7,7 +7,7 @@ import AdminTalentManagement from './AdminTalentManagement.js';
 
 const PeopleSkillsPlatform = () => {
   // Password protection state
-  const [isPasswordProtected, setIsPasswordProtected] = useState(true);
+  const [isPasswordProtected, setIsPasswordProtected] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   
