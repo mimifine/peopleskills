@@ -177,13 +177,13 @@ const AdminTalentManagement = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background-secondary">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <div className="bg-background border-b">
+        <div className="container py-6">
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Talent Management</h1>
+              <h1 className="text-2xl font-bold text-foreground">Talent Management</h1>
               <p className="text-gray-600 mt-1">Search, filter, and select talent for packages</p>
             </div>
             {selectedTalent.length > 0 && (
@@ -191,7 +191,7 @@ const AdminTalentManagement = () => {
                 <span className="text-sm text-gray-600">
                   {selectedTalent.length} selected
                 </span>
-                <button className="bg-purple-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2">
+                <button className="btn btn-secondary flex items-center space-x-2">
                   <Package className="h-4 w-4" />
                   <span>Create Package</span>
                 </button>

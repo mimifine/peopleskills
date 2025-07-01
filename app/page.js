@@ -618,15 +618,15 @@ const PeopleSkillsPlatform = () => {
     if (!showAuthModal) return null;
 
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md">
+      <div className="modal-backdrop">
+        <div className="modal p-6 w-full max-w-md">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               {authMode === 'login' ? 'Sign In' : 'Sign Up'}
             </h2>
             <button
               onClick={() => setShowAuthModal(false)}
-              className="text-gray-400 hover:text-gray-600"
+              className="text-gray-400 hover:text-gray-600 transition-colors"
             >
               <X className="h-6 w-6" />
             </button>
@@ -635,41 +635,44 @@ const PeopleSkillsPlatform = () => {
           <form onSubmit={(e) => { e.preventDefault(); authMode === 'login' ? handleLogin() : handleSignup(); }}>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   value={authForm.email}
                   onChange={(e) => handleAuthFormChange('email', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="input"
+                  placeholder="Enter your email"
                   required
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
                   Password
                 </label>
                 <input
                   type="password"
                   value={authForm.password}
                   onChange={(e) => handleAuthFormChange('password', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="input"
+                  placeholder="Enter your password"
                   required
                 />
               </div>
               
               {authMode === 'signup' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
                     Full Name
                   </label>
                   <input
                     type="text"
                     value={authForm.fullName}
                     onChange={(e) => handleAuthFormChange('fullName', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    className="input"
+                    placeholder="Enter your full name"
                     required
                   />
                 </div>
@@ -677,7 +680,7 @@ const PeopleSkillsPlatform = () => {
               
               <button
                 type="submit"
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                className="btn btn-primary w-full"
               >
                 {authMode === 'login' ? 'Sign In' : 'Sign Up'}
               </button>
@@ -687,7 +690,7 @@ const PeopleSkillsPlatform = () => {
           <div className="mt-4 text-center">
             <button
               onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-              className="text-purple-600 hover:text-purple-700 text-sm"
+              className="text-primary hover:text-primary-hover text-sm transition-colors"
             >
               {authMode === 'login' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
             </button>
@@ -706,10 +709,10 @@ const PeopleSkillsPlatform = () => {
     };
 
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-background-secondary flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+            <h2 className="text-3xl font-bold text-foreground">
               Choose Your View
             </h2>
             <p className="mt-2 text-sm text-gray-600">
@@ -720,7 +723,7 @@ const PeopleSkillsPlatform = () => {
           <div className="space-y-4">
             <button
               onClick={() => handleRoleSelect('ADMIN')}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+              className="btn btn-secondary w-full text-base"
             >
               <Users className="h-6 w-6 mr-3" />
               View as Admin
@@ -728,7 +731,7 @@ const PeopleSkillsPlatform = () => {
             
             <button
               onClick={() => handleRoleSelect('BRAND')}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              className="btn btn-primary w-full text-base"
             >
               <Briefcase className="h-6 w-6 mr-3" />
               View as Brand
@@ -736,7 +739,7 @@ const PeopleSkillsPlatform = () => {
             
             <button
               onClick={() => handleRoleSelect('DIRECT_TALENT')}
-              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+              className="btn btn-success w-full text-base"
             >
               <User className="h-6 w-6 mr-3" />
               View as Talent
@@ -746,7 +749,7 @@ const PeopleSkillsPlatform = () => {
           <div className="text-center">
             <button
               onClick={handleLogout}
-              className="text-sm text-gray-500 hover:text-gray-700"
+              className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
             >
               Sign out
             </button>
@@ -761,9 +764,9 @@ const PeopleSkillsPlatform = () => {
       <AuthenticationModal />
       
       {!isAuthenticated ? (
-        <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full text-center">
-            <h1 className="text-3xl font-bold text-gray-900 mb-4">People Skills</h1>
+        <div className="min-h-screen bg-gradient-to-br from-primary-light to-secondary-light flex items-center justify-center">
+          <div className="card card-elevated p-8 max-w-md w-full text-center">
+            <h1 className="text-3xl font-bold text-foreground mb-4">People Skills</h1>
             <p className="text-gray-600 mb-6">Talent casting platform for brands and agencies</p>
             <div className="space-y-3">
               <button
@@ -771,13 +774,13 @@ const PeopleSkillsPlatform = () => {
                   console.log('🔘 Sign In button clicked!');
                   openAuthModal('login');
                 }}
-                className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
+                className="btn btn-primary w-full"
               >
                 Sign In
               </button>
               <button
                 onClick={() => openAuthModal('signup')}
-                className="w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors"
+                className="btn btn-ghost w-full"
               >
                 Sign Up
               </button>
@@ -788,55 +791,39 @@ const PeopleSkillsPlatform = () => {
         <RoleSelectionScreen />
       ) : (
         <>
-          <header className="bg-white shadow-sm border-b">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <header className="nav">
+            <div className="container">
               <div className="flex justify-between items-center h-16">
                 <div className="flex items-center">
-                  <h1 className="text-xl font-semibold text-gray-900">People Skills</h1>
+                  <h1 className="text-xl font-semibold text-foreground">People Skills</h1>
                 </div>
                 
                 {/* Role-based Tab Navigation */}
                 {isAuthenticated && (
-                  <div className="flex items-center space-x-1">
+                  <nav className="flex items-center space-x-1">
                     {currentUserRole === 'ADMIN' && (
                       <>
                         <button
                           onClick={() => setActiveTab('dashboard')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'dashboard'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
                         >
                           Dashboard
                         </button>
                         <button
                           onClick={() => setActiveTab('projects')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'projects'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'projects' ? 'active' : ''}`}
                         >
                           Projects
                         </button>
                         <button
                           onClick={() => setActiveTab('talent')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'talent'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'talent' ? 'active' : ''}`}
                         >
                           Talent
                         </button>
                         <button
                           onClick={() => setActiveTab('users')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'users'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'users' ? 'active' : ''}`}
                         >
                           Users
                         </button>
@@ -846,41 +833,25 @@ const PeopleSkillsPlatform = () => {
                       <>
                         <button
                           onClick={() => setActiveTab('brand-dashboard')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'brand-dashboard'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'brand-dashboard' ? 'active' : ''}`}
                         >
                           Dashboard
                         </button>
                         <button
                           onClick={() => setActiveTab('create-brief')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'create-brief'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'create-brief' ? 'active' : ''}`}
                         >
                           Create Brief
                         </button>
                         <button
                           onClick={() => setActiveTab('my-projects')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'my-projects'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'my-projects' ? 'active' : ''}`}
                         >
                           My Projects
                         </button>
                         <button
                           onClick={() => setActiveTab('browse-talent')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'browse-talent'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'browse-talent' ? 'active' : ''}`}
                         >
                           Browse Talent
                         </button>
@@ -890,37 +861,25 @@ const PeopleSkillsPlatform = () => {
                       <>
                         <button
                           onClick={() => setActiveTab('dashboard')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'dashboard'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'dashboard' ? 'active' : ''}`}
                         >
                           Dashboard
                         </button>
                         <button
                           onClick={() => setActiveTab('profile')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'profile'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'profile' ? 'active' : ''}`}
                         >
                           Profile
                         </button>
                         <button
                           onClick={() => setActiveTab('opportunities')}
-                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                            activeTab === 'opportunities'
-                              ? 'bg-purple-100 text-purple-700'
-                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
-                          }`}
+                          className={`nav-item ${activeTab === 'opportunities' ? 'active' : ''}`}
                         >
                           Opportunities
                         </button>
                       </>
                     )}
-                  </div>
+                  </nav>
                 )}
                 
                 <div className="flex items-center space-x-4">
@@ -934,7 +893,7 @@ const PeopleSkillsPlatform = () => {
                         </span>
                         <button
                           onClick={handleLogout}
-                          className="inline-flex items-center px-3 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                          className="btn btn-ghost btn-sm"
                         >
                           Logout
                         </button>
@@ -944,13 +903,13 @@ const PeopleSkillsPlatform = () => {
                     <div className="flex items-center space-x-2">
                       <button
                         onClick={() => openAuthModal('login')}
-                        className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                        className="btn btn-primary btn-sm"
                       >
                         Sign In
                       </button>
                       <button
                         onClick={() => openAuthModal('signup')}
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                        className="btn btn-ghost btn-sm"
                       >
                         Sign Up
                       </button>
@@ -961,16 +920,16 @@ const PeopleSkillsPlatform = () => {
             </div>
           </header>
 
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <main className="container py-8">
             {/* Admin: Talent Tab */}
             {activeTab === 'talent' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
                 {/* Add Talent Button */}
                 <div className="flex justify-between items-center">
-                  <h2 className="text-2xl font-bold text-gray-900">Talent Management</h2>
+                  <h2 className="text-2xl font-bold text-foreground">Talent Management</h2>
                   <button
                     onClick={() => setActiveTab('add-talent')}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2"
+                    className="btn btn-secondary flex items-center space-x-2"
                   >
                     <Plus className="h-4 w-4" />
                     <span>Add Talent</span>
