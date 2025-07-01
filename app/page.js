@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcase, Eye, MapPin, ExternalLink, Upload, X, ThumbsUp, ThumbsDown, Heart, MessageCircle, Calculator, Edit3, Image, Video, Trash2, ChevronLeft, ChevronRight, Play, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 import AdminTalentManagement from './AdminTalentManagement.js';
@@ -21,6 +21,8 @@ const PeopleSkillsPlatform = () => {
   const [showBriefModal, setShowBriefModal] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUserRole, setCurrentUserRole] = useState('');
+  const [showRoleSelection, setShowRoleSelection] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [authForm, setAuthForm] = useState({
@@ -64,6 +66,28 @@ const PeopleSkillsPlatform = () => {
   const [uploadedPhotos, setUploadedPhotos] = useState([]);
   const [uploadedVideos, setUploadedVideos] = useState([]);
   const [uploadLoading, setUploadLoading] = useState(false);
+
+  // Brand Interface state
+  const [briefForm, setBriefForm] = useState({
+    title: '',
+    description: '',
+    budgetMin: '',
+    budgetMax: '',
+    deadline: '',
+    shootStartDate: '',
+    shootEndDate: '',
+    location: '',
+    usageRights: '',
+    numberOfTalent: 1
+  });
+  const [briefLoading, setBriefLoading] = useState(false);
+  const [briefMessage, setBriefMessage] = useState({ type: '', text: '' });
+  const [projects, setProjects] = useState([]);
+  const [talents, setTalents] = useState([]);
+  const [favorites, setFavorites] = useState([]);
+  const [talentRequirements, setTalentRequirements] = useState([
+    { id: 1, gender: '', size: '', age: '', notes: '' }
+  ]);
 
   // Mock users for authentication
   const mockUsers = [
@@ -261,7 +285,8 @@ const PeopleSkillsPlatform = () => {
     
     if (user) {
       setIsAuthenticated(true);
-      setCurrentUserRole(user.role);
+      setCurrentUser(user);
+      setShowRoleSelection(true);
       setShowAuthModal(false);
       setAuthForm({ email: '', password: '', fullName: '', companyName: '' });
     } else {
@@ -289,6 +314,8 @@ const PeopleSkillsPlatform = () => {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setCurrentUserRole('');
+    setCurrentUser(null);
+    setShowRoleSelection(false);
     setActiveTab('dashboard');
   };
 
@@ -345,6 +372,150 @@ const PeopleSkillsPlatform = () => {
   const removeVideo = (id) => {
     setUploadedVideos(prev => prev.filter(video => video.id !== id));
   };
+
+  // Brand Interface Form Handlers
+  const handleBriefFormChange = (field, value) => {
+    setBriefForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const resetBriefForm = () => {
+    setBriefForm({
+      title: '',
+      description: '',
+      budgetMin: '',
+      budgetMax: '',
+      deadline: '',
+      shootStartDate: '',
+      shootEndDate: '',
+      location: '',
+      usageRights: '',
+      numberOfTalent: 1
+    });
+    setTalentRequirements([{ id: 1, gender: '', size: '', age: '', notes: '' }]);
+    setBriefMessage({ type: '', text: '' });
+  };
+
+  const handleTalentRequirementChange = (id, field, value) => {
+    setTalentRequirements(prev => 
+      prev.map(req => 
+        req.id === id ? { ...req, [field]: value } : req
+      )
+    );
+  };
+
+  const updateTalentRequirements = (count) => {
+    const newRequirements = [];
+    for (let i = 1; i <= count; i++) {
+      newRequirements.push({
+        id: i,
+        gender: '',
+        size: '',
+        age: '',
+        notes: ''
+      });
+    }
+    setTalentRequirements(newRequirements);
+  };
+
+  const handleBriefSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!briefForm.title.trim()) {
+      setBriefMessage({ type: 'error', text: 'Project title is required' });
+      return;
+    }
+
+    setBriefLoading(true);
+    setBriefMessage({ type: '', text: '' });
+
+    try {
+      const projectData = {
+        title: briefForm.title.trim(),
+        description: briefForm.description.trim() || null,
+        budget_min: briefForm.budgetMin ? parseInt(briefForm.budgetMin) : null,
+        budget_max: briefForm.budgetMax ? parseInt(briefForm.budgetMax) : null,
+        deadline: briefForm.deadline || null,
+        shoot_start_date: briefForm.shootStartDate || null,
+        shoot_end_date: briefForm.shootEndDate || null,
+        location: briefForm.location.trim() || null,
+        usage_rights: briefForm.usageRights.trim() || null,
+        number_of_talent: parseInt(briefForm.numberOfTalent) || 1,
+        status: 'draft',
+        brand_user_id: currentUser?.id || 'brand-1', // Use actual user ID if available
+        created_at: new Date().toISOString()
+      };
+
+      console.log('📤 Submitting project data:', projectData);
+
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('projects')
+        .insert([projectData])
+        .select();
+
+      if (error) {
+        console.error('❌ Supabase error:', error);
+        throw new Error(error.message || 'Failed to create project');
+      }
+
+      console.log('✅ Success! Created project:', data);
+      
+      setBriefMessage({ type: 'success', text: 'Project brief created successfully!' });
+      resetBriefForm();
+      
+      // Add to local projects array
+      setProjects(prev => [data[0], ...prev]);
+
+    } catch (error) {
+      console.error('❌ Error creating project:', error);
+      setBriefMessage({ 
+        type: 'error', 
+        text: error.message || 'Failed to create project. Please try again.' 
+      });
+    } finally {
+      setBriefLoading(false);
+    }
+  };
+
+  const handleFavorite = (talentId) => {
+    if (favorites.includes(talentId)) {
+      setFavorites(prev => prev.filter(id => id !== talentId));
+    } else {
+      setFavorites(prev => [...prev, talentId]);
+    }
+  };
+
+  // Load projects from Supabase when brand user accesses dashboard
+  useEffect(() => {
+    const loadProjects = async () => {
+      if (currentUserRole === 'BRAND' && currentUser) {
+        try {
+          console.log('🔄 Loading projects for user:', currentUser.id);
+          
+          const { data, error } = await supabase
+            .from('projects')
+            .select('*')
+            .eq('brand_user_id', currentUser.id)
+            .order('created_at', { ascending: false });
+
+          if (error) {
+            console.error('❌ Error loading projects:', error);
+            return;
+          }
+
+          console.log('✅ Loaded projects:', data);
+          setProjects(data || []);
+        } catch (error) {
+          console.error('❌ Error loading projects:', error);
+        }
+      }
+    };
+
+    loadProjects();
+  }, [currentUserRole, currentUser]);
 
   // Success notification component
   const SuccessNotification = ({ message, onClose }) => {
@@ -484,6 +655,65 @@ const PeopleSkillsPlatform = () => {
     );
   };
 
+  // Role Selection Component
+  const RoleSelectionScreen = () => {
+    const handleRoleSelect = (role) => {
+      setCurrentUserRole(role);
+      setShowRoleSelection(false);
+      setActiveTab(role === 'ADMIN' ? 'dashboard' : role === 'BRAND' ? 'brand-dashboard' : 'dashboard');
+    };
+
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full space-y-8">
+          <div className="text-center">
+            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+              Choose Your View
+            </h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Select how you'd like to view the platform
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <button
+              onClick={() => handleRoleSelect('ADMIN')}
+              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-colors"
+            >
+              <Users className="h-6 w-6 mr-3" />
+              View as Admin
+            </button>
+            
+            <button
+              onClick={() => handleRoleSelect('BRAND')}
+              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <Briefcase className="h-6 w-6 mr-3" />
+              View as Brand
+            </button>
+            
+            <button
+              onClick={() => handleRoleSelect('DIRECT_TALENT')}
+              className="w-full flex items-center justify-center px-4 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+            >
+              <User className="h-6 w-6 mr-3" />
+              View as Talent
+            </button>
+          </div>
+          
+          <div className="text-center">
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 hover:text-gray-700"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <AuthenticationModal />
@@ -509,6 +739,8 @@ const PeopleSkillsPlatform = () => {
             </div>
           </div>
         </div>
+      ) : showRoleSelection ? (
+        <RoleSelectionScreen />
       ) : (
         <>
           <header className="bg-white shadow-sm border-b">
@@ -582,6 +814,50 @@ const PeopleSkillsPlatform = () => {
                           }`}
                         >
                           Manage Users
+                        </button>
+                      </>
+                    )}
+                    {currentUserRole === 'BRAND' && (
+                      <>
+                        <button
+                          onClick={() => setActiveTab('brand-dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'brand-dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Dashboard
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('create-brief')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'create-brief'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Create Brief
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('my-projects')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'my-projects'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          My Projects
+                        </button>
+                        <button
+                          onClick={() => setActiveTab('browse-talent')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'browse-talent'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Browse Talent
                         </button>
                       </>
                     )}
@@ -967,15 +1243,16 @@ const PeopleSkillsPlatform = () => {
                           {uploadedPhotos.length > 0 && (
                             <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
                               {uploadedPhotos.map((photo) => (
-                                <div key={photo.id} className="relative group">
+                                <div key={photo.id} className="relative">
                                   <img
                                     src={photo.preview}
                                     alt="Preview"
                                     className="w-full h-32 object-cover rounded-lg"
                                   />
                                   <button
+                                    type="button"
                                     onClick={() => removePhoto(photo.id)}
-                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                                   >
                                     <X className="h-4 w-4" />
                                   </button>
@@ -1005,7 +1282,7 @@ const PeopleSkillsPlatform = () => {
                                 Click to upload videos or drag and drop
                               </p>
                               <p className="text-xs text-gray-500">
-                                MP4, MOV up to 100MB each. Maximum 5 videos.
+                                MP4, MOV up to 50MB each. Maximum 5 videos.
                               </p>
                             </label>
                           </div>
@@ -1014,15 +1291,16 @@ const PeopleSkillsPlatform = () => {
                           {uploadedVideos.length > 0 && (
                             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                               {uploadedVideos.map((video) => (
-                                <div key={video.id} className="relative group">
+                                <div key={video.id} className="relative">
                                   <video
                                     src={video.preview}
-                                    className="w-full h-32 object-cover rounded-lg"
                                     controls
+                                    className="w-full h-48 object-cover rounded-lg"
                                   />
                                   <button
+                                    type="button"
                                     onClick={() => removeVideo(video.id)}
-                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
                                   >
                                     <X className="h-4 w-4" />
                                   </button>
@@ -1033,40 +1311,14 @@ const PeopleSkillsPlatform = () => {
                         </div>
                       </div>
 
-                      <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                        <button
-                          type="button"
-                          onClick={resetAddTalentForm}
-                          className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
-                        >
-                          Reset Form
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            console.log('🔧 Test button clicked!');
-                            alert('Test button works!');
-                          }}
-                          className="px-6 py-2 border border-blue-300 rounded-lg text-blue-700 hover:bg-blue-50 transition-colors"
-                        >
-                          Test Button
-                        </button>
+                      {/* Submit Button */}
+                      <div className="flex justify-end">
                         <button
                           type="submit"
                           disabled={addTalentLoading}
-                          className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center space-x-2 disabled:opacity-50"
+                          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {addTalentLoading ? (
-                            <>
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                              <span>Adding Talent...</span>
-                            </>
-                          ) : (
-                            <>
-                              <Plus className="h-4 w-4" />
-                              <span>Add Talent</span>
-                            </>
-                          )}
+                          {addTalentLoading ? 'Adding Talent...' : 'Add Talent'}
                         </button>
                       </div>
                     </form>
@@ -1111,6 +1363,509 @@ const PeopleSkillsPlatform = () => {
                 <div className="bg-white rounded-lg shadow p-6">
                   <h2 className="text-lg font-medium text-gray-900 mb-4">Manage Users</h2>
                   <p className="text-gray-600">Manage user accounts and permissions.</p>
+                </div>
+              </div>
+            )}
+
+            {/* Brand: Dashboard Tab */}
+            {activeTab === 'brand-dashboard' && currentUserRole === 'BRAND' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Brand Dashboard</h2>
+                    <p className="text-sm text-gray-600 mt-1">Overview of your projects and talent</p>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                      <div className="bg-purple-50 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <Briefcase className="h-8 w-8 text-purple-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-purple-600">Active Projects</p>
+                            <p className="text-2xl font-bold text-purple-900">{projects.filter(p => p.status === 'active').length}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <Users className="h-8 w-8 text-blue-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-blue-600">Favorite Talent</p>
+                            <p className="text-2xl font-bold text-blue-900">{favorites.length}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <div className="flex items-center">
+                          <Check className="h-8 w-8 text-green-600" />
+                          <div className="ml-3">
+                            <p className="text-sm font-medium text-green-600">Completed</p>
+                            <p className="text-2xl font-bold text-green-900">{projects.filter(p => p.status === 'completed').length}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="text-lg font-medium text-gray-900">Recent Projects</h3>
+                      {projects.length > 0 ? (
+                        <div className="space-y-3">
+                          {projects.slice(0, 3).map((project) => (
+                            <div key={project.id} className="border border-gray-200 rounded-lg p-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <h4 className="font-medium text-gray-900">{project.title}</h4>
+                                  <p className="text-sm text-gray-600">{project.description}</p>
+                                </div>
+                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                  project.status === 'active' ? 'bg-green-100 text-green-800' :
+                                  project.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                  'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {project.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500">No projects yet. Create your first brief!</p>
+                      )}
+                    </div>
+
+                    {/* Brand Activity Section */}
+                    <div className="mt-8 space-y-4">
+                      <h3 className="text-lg font-medium text-gray-900">Brand Activity</h3>
+                      
+                      {/* Favorited Talent */}
+                      <div className="bg-blue-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-blue-900">Favorited Talent</h4>
+                          <Heart className="h-5 w-5 text-blue-600" />
+                        </div>
+                        {favorites.length > 0 ? (
+                          <div className="space-y-2">
+                            {favorites.slice(0, 3).map((talentId) => (
+                              <div key={talentId} className="flex items-center justify-between bg-white rounded p-2">
+                                <span className="text-sm text-blue-800">Talent #{talentId}</span>
+                                <div className="flex items-center space-x-2">
+                                  <button className="text-blue-600 hover:text-blue-800">
+                                    <ThumbsUp className="h-4 w-4" />
+                                  </button>
+                                  <button className="text-red-600 hover:text-red-800">
+                                    <ThumbsDown className="h-4 w-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                            {favorites.length > 3 && (
+                              <p className="text-xs text-blue-600">+{favorites.length - 3} more favorites</p>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-blue-700">No favorited talent yet. Start browsing talent to add favorites!</p>
+                        )}
+                      </div>
+
+                      {/* Recent Votes */}
+                      <div className="bg-green-50 rounded-lg p-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="font-medium text-green-900">Recent Votes</h4>
+                          <div className="flex items-center space-x-1">
+                            <ThumbsUp className="h-4 w-4 text-green-600" />
+                            <ThumbsDown className="h-4 w-4 text-green-600" />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between bg-white rounded p-2">
+                            <span className="text-sm text-green-800">Talent #1 - Fashion Campaign</span>
+                            <ThumbsUp className="h-4 w-4 text-green-600" />
+                          </div>
+                          <div className="flex items-center justify-between bg-white rounded p-2">
+                            <span className="text-sm text-green-800">Talent #3 - Product Shoot</span>
+                            <ThumbsDown className="h-4 w-4 text-red-600" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Brand: Create Brief Tab */}
+            {activeTab === 'create-brief' && currentUserRole === 'BRAND' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Create New Brief</h2>
+                    <p className="text-sm text-gray-600 mt-1">Define your project requirements and budget</p>
+                  </div>
+                  
+                  <div className="p-6">
+                    {/* Success/Error Messages */}
+                    {briefMessage.text && (
+                      <div className={`mb-6 p-4 rounded-lg border-2 ${
+                        briefMessage.type === 'success' 
+                          ? 'bg-green-50 text-green-800 border-green-300' 
+                          : 'bg-red-50 text-red-800 border-red-300'
+                      }`}>
+                        <div className="flex items-center">
+                          {briefMessage.type === 'success' ? (
+                            <Check className="h-5 w-5 text-green-600 mr-2 flex-shrink-0" />
+                          ) : (
+                            <X className="h-5 w-5 text-red-600 mr-2 flex-shrink-0" />
+                          )}
+                          <span className="font-medium">{briefMessage.text}</span>
+                        </div>
+                      </div>
+                    )}
+
+                    <form onSubmit={handleBriefSubmit} className="space-y-6">
+                      {/* Project Details */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Details</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Project Title *
+                            </label>
+                            <input
+                              type="text"
+                              value={briefForm.title}
+                              onChange={(e) => handleBriefFormChange('title', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="Enter project title"
+                              required
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Project Description
+                            </label>
+                            <textarea
+                              value={briefForm.description}
+                              onChange={(e) => handleBriefFormChange('description', e.target.value)}
+                              rows={4}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="Describe your project requirements, concept, and goals..."
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Location
+                            </label>
+                            <input
+                              type="text"
+                              value={briefForm.location}
+                              onChange={(e) => handleBriefFormChange('location', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="City, State or Remote"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Number of Talent Needed
+                            </label>
+                            <input
+                              type="number"
+                              value={briefForm.numberOfTalent}
+                              onChange={(e) => {
+                                const count = parseInt(e.target.value) || 1;
+                                handleBriefFormChange('numberOfTalent', count);
+                                updateTalentRequirements(count);
+                              }}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              min="1"
+                              max="10"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Talent Requirements */}
+                      {talentRequirements.length > 0 && (
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-900 mb-4">Talent Requirements</h3>
+                          <div className="space-y-4">
+                            {talentRequirements.map((requirement) => (
+                              <div key={requirement.id} className="border border-gray-200 rounded-lg p-4">
+                                <h4 className="font-medium text-gray-900 mb-3">Talent #{requirement.id}</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Gender
+                                    </label>
+                                    <select
+                                      value={requirement.gender}
+                                      onChange={(e) => handleTalentRequirementChange(requirement.id, 'gender', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    >
+                                      <option value="">Select gender</option>
+                                      <option value="male">Male</option>
+                                      <option value="female">Female</option>
+                                      <option value="non-binary">Non-binary</option>
+                                      <option value="any">Any</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Size
+                                    </label>
+                                    <select
+                                      value={requirement.size}
+                                      onChange={(e) => handleTalentRequirementChange(requirement.id, 'size', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    >
+                                      <option value="">Select size</option>
+                                      <option value="xs">XS</option>
+                                      <option value="s">S</option>
+                                      <option value="m">M</option>
+                                      <option value="l">L</option>
+                                      <option value="xl">XL</option>
+                                      <option value="xxl">XXL</option>
+                                      <option value="any">Any</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                      Age Range
+                                    </label>
+                                    <select
+                                      value={requirement.age}
+                                      onChange={(e) => handleTalentRequirementChange(requirement.id, 'age', e.target.value)}
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    >
+                                      <option value="">Select age range</option>
+                                      <option value="18-25">18-25</option>
+                                      <option value="26-35">26-35</option>
+                                      <option value="36-45">36-45</option>
+                                      <option value="46-55">46-55</option>
+                                      <option value="55+">55+</option>
+                                      <option value="any">Any</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div className="mt-3">
+                                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Additional Notes
+                                  </label>
+                                  <textarea
+                                    value={requirement.notes}
+                                    onChange={(e) => handleTalentRequirementChange(requirement.id, 'notes', e.target.value)}
+                                    rows={2}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    placeholder="Any specific requirements or notes for this talent..."
+                                  />
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Budget */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Budget</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Minimum Budget ($)
+                            </label>
+                            <input
+                              type="number"
+                              value={briefForm.budgetMin}
+                              onChange={(e) => handleBriefFormChange('budgetMin', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="5000"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Maximum Budget ($)
+                            </label>
+                            <input
+                              type="number"
+                              value={briefForm.budgetMax}
+                              onChange={(e) => handleBriefFormChange('budgetMax', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                              placeholder="25000"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Timeline */}
+                      <div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-4">Timeline</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Deadline
+                            </label>
+                            <input
+                              type="date"
+                              value={briefForm.deadline}
+                              onChange={(e) => handleBriefFormChange('deadline', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Shoot Start Date
+                            </label>
+                            <input
+                              type="date"
+                              value={briefForm.shootStartDate}
+                              onChange={(e) => handleBriefFormChange('shootStartDate', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                              Shoot End Date
+                            </label>
+                            <input
+                              type="date"
+                              value={briefForm.shootEndDate}
+                              onChange={(e) => handleBriefFormChange('shootEndDate', e.target.value)}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Usage Rights */}
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Usage Rights
+                        </label>
+                        <textarea
+                          value={briefForm.usageRights}
+                          onChange={(e) => handleBriefFormChange('usageRights', e.target.value)}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          placeholder="Describe how you plan to use the content (social media, advertising, etc.)..."
+                        />
+                      </div>
+
+                      {/* Submit Button */}
+                      <div className="flex justify-end">
+                        <button
+                          type="submit"
+                          disabled={briefLoading}
+                          className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {briefLoading ? 'Creating Brief...' : 'Create Brief'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Brand: My Projects Tab */}
+            {activeTab === 'my-projects' && currentUserRole === 'BRAND' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">My Projects</h2>
+                    <p className="text-sm text-gray-600 mt-1">Manage your project briefs and track progress</p>
+                  </div>
+                  
+                  <div className="p-6">
+                    {projects.length > 0 ? (
+                      <div className="space-y-4">
+                        {projects.map((project) => (
+                          <div key={project.id} className="border border-gray-200 rounded-lg p-6">
+                            <div className="flex justify-between items-start mb-4">
+                              <div>
+                                <h3 className="text-lg font-medium text-gray-900">{project.title}</h3>
+                                <p className="text-sm text-gray-600 mt-1">{project.description}</p>
+                              </div>
+                              <span className={`px-3 py-1 text-sm font-medium rounded-full ${
+                                project.status === 'active' ? 'bg-green-100 text-green-800' :
+                                project.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                                'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {project.status}
+                              </span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium text-gray-700">Budget:</span>
+                                <span className="ml-2 text-gray-600">
+                                  ${project.budget_min || '0'} - ${project.budget_max || '0'}
+                                </span>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Location:</span>
+                                <span className="ml-2 text-gray-600">{project.location || 'Not specified'}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium text-gray-700">Talent Needed:</span>
+                                <span className="ml-2 text-gray-600">{project.number_of_talent}</span>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-4 pt-4 border-t border-gray-200">
+                              <div className="flex justify-between items-center">
+                                <span className="text-xs text-gray-500">
+                                  Created: {new Date(project.created_at).toLocaleDateString()}
+                                </span>
+                                <div className="space-x-2">
+                                  <button className="px-3 py-1 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
+                                    View Details
+                                  </button>
+                                  <button className="px-3 py-1 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700">
+                                    Edit
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <Briefcase className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No projects yet</h3>
+                        <p className="mt-1 text-sm text-gray-500">Get started by creating your first brief.</p>
+                        <div className="mt-6">
+                          <button
+                            onClick={() => setActiveTab('create-brief')}
+                            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700"
+                          >
+                            Create Brief
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Brand: Browse Talent Tab */}
+            {activeTab === 'browse-talent' && currentUserRole === 'BRAND' && (
+              <div className="space-y-6">
+                <div className="bg-white rounded-lg shadow">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-medium text-gray-900">Browse Talent</h2>
+                    <p className="text-sm text-gray-600 mt-1">Discover and favorite talent for your projects</p>
+                  </div>
+                  
+                  <div className="p-6">
+                    <div className="text-center py-12">
+                      <Users className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">Talent browsing coming soon</h3>
+                      <p className="mt-1 text-sm text-gray-500">This feature will allow you to browse and favorite talent profiles.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
