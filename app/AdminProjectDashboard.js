@@ -3,7 +3,7 @@ import { Calendar, Users, DollarSign, MapPin, Clock, Search, Filter, ChevronDown
 import { supabase } from '../lib/supabase.js';
 import ProjectTalentSelection from './ProjectTalentSelection.js';
 
-const AdminProjectDashboard = () => {
+const AdminProjectDashboard = ({ currentUser }) => {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -281,6 +281,7 @@ const AdminProjectDashboard = () => {
           project={selectedProject}
           onClose={handleCloseTalentSelection}
           onTalentAssigned={handleTalentAssigned}
+          currentUser={currentUser}
         />
       )}
       {/* Header */}
