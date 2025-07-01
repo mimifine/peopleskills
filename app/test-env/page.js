@@ -11,7 +11,7 @@ export default function TestEnv() {
       {!supabaseUrl || !supabaseKey ? (
         <div style={{ background: '#fee', padding: '10px', margin: '10px 0', border: '1px solid #fcc' }}>
           <h3>❌ Environment Variables Missing!</h3>
-          <p>This is why talent addition isn&apos;t working on your domain.</p>
+          <p>This is why the app isn&apos;t working correctly on production.</p>
           <p>Please add the environment variables to your Vercel deployment.</p>
         </div>
       ) : (
