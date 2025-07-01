@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Copy, Edit3, Trash2, Star, Package, Users, DollarSign, Calendar, Search, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Copy, Edit3, Trash2, Star, Package, Users, DollarSign, Calendar, Search, Filter, ChevronDown, X } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 
 const AdminTalentPackages = () => {
@@ -11,6 +11,18 @@ const AdminTalentPackages = () => {
   const [showCloneModal, setShowCloneModal] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [activeTab, setActiveTab] = useState('packages'); // 'packages' or 'templates'
+  
+  // Create package form state
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    description: '',
+    talent_count: 1,
+    budget_min: '',
+    budget_max: '',
+    duration: '',
+    is_template: false
+  });
+  const [creating, setCreating] = useState(false);
 
   // Mock data for demonstration
   const mockPackages = [
@@ -114,6 +126,63 @@ const AdminTalentPackages = () => {
     setPackages(prev => [newPackage, ...prev]);
     setShowCloneModal(false);
     setSelectedTemplate(null);
+  };
+
+  const handleCreatePackage = async () => {
+    if (!createForm.name || !createForm.description || !createForm.budget_min || !createForm.budget_max || !createForm.duration) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const newPackage = {
+        id: Date.now(),
+        name: createForm.name,
+        description: createForm.description,
+        talent_count: parseInt(createForm.talent_count),
+        budget_range: `$${parseInt(createForm.budget_min).toLocaleString()} - $${parseInt(createForm.budget_max).toLocaleString()}`,
+        duration: createForm.duration,
+        is_template: createForm.is_template,
+        template_name: createForm.is_template ? createForm.name : null,
+        created_at: new Date().toISOString()
+      };
+
+      // Add to appropriate list
+      if (createForm.is_template) {
+        setTemplates(prev => [newPackage, ...prev]);
+      } else {
+        setPackages(prev => [newPackage, ...prev]);
+      }
+
+      // Reset form and close modal
+      setCreateForm({
+        name: '',
+        description: '',
+        talent_count: 1,
+        budget_min: '',
+        budget_max: '',
+        duration: '',
+        is_template: false
+      });
+      setShowCreateModal(false);
+      
+      // Switch to appropriate tab
+      setActiveTab(createForm.is_template ? 'templates' : 'packages');
+      
+    } catch (error) {
+      console.error('Error creating package:', error);
+      alert('Failed to create package. Please try again.');
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    setCreateForm(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const filteredPackages = packages.filter(pkg => 
@@ -295,6 +364,155 @@ const AdminTalentPackages = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Create Package Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-semibold text-gray-900">Create New Package</h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="p-2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Package Name */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Package Name *
+                </label>
+                <input
+                  type="text"
+                  value={createForm.name}
+                  onChange={(e) => handleInputChange('name', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="e.g., Fashion Campaign Package"
+                />
+              </div>
+
+              {/* Description */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description *
+                </label>
+                <textarea
+                  value={createForm.description}
+                  onChange={(e) => handleInputChange('description', e.target.value)}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  placeholder="Describe the package and its requirements..."
+                />
+              </div>
+
+              {/* Talent Count and Duration */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Number of Talent
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={createForm.talent_count}
+                    onChange={(e) => handleInputChange('talent_count', parseInt(e.target.value) || 1)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Duration *
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.duration}
+                    onChange={(e) => handleInputChange('duration', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                    placeholder="e.g., 2-3 days, 1 week"
+                  />
+                </div>
+              </div>
+
+              {/* Budget Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Budget Range *
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Minimum Budget ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={createForm.budget_min}
+                      onChange={(e) => handleInputChange('budget_min', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="5000"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">Maximum Budget ($)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={createForm.budget_max}
+                      onChange={(e) => handleInputChange('budget_max', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="25000"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Template Option */}
+              <div className="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="is_template"
+                  checked={createForm.is_template}
+                  onChange={(e) => handleInputChange('is_template', e.target.checked)}
+                  className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                />
+                <label htmlFor="is_template" className="text-sm text-gray-700">
+                  Save as template for future use
+                </label>
+              </div>
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800 border border-gray-300 rounded-lg hover:bg-gray-50"
+                disabled={creating}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleCreatePackage}
+                disabled={creating}
+                className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {creating ? (
+                  <>
+                    <div className="spinner"></div>
+                    <span>Creating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    <span>Create Package</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
