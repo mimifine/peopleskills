@@ -1929,7 +1929,7 @@ const PeopleSkillsPlatform = () => {
                   
                   <div className="p-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {/* Mock Talent Cards */}
+                      {/* Sophisticated Talent Cards with Carousels */}
                       {[
                         {
                           id: 1,
@@ -1938,9 +1938,20 @@ const PeopleSkillsPlatform = () => {
                           location: 'Milan, Italy',
                           rate: 5000,
                           rating: 4.9,
-                          image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
                           bio: 'International fashion model with extensive runway and editorial experience.',
-                          socials: { instagram: 850000, tiktok: 120000 }
+                          socials: { 
+                            instagram: { followers: 850000, handle: 'vittoria' }, 
+                            tiktok: { followers: 120000, handle: 'vittoriaceretti' } 
+                          },
+                          photos: [
+                            'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop'
+                          ],
+                          videos: [
+                            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+                            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4'
+                          ]
                         },
                         {
                           id: 2,
@@ -1949,9 +1960,19 @@ const PeopleSkillsPlatform = () => {
                           location: 'Los Angeles, CA',
                           rate: 2500,
                           rating: 4.7,
-                          image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
                           bio: 'Lifestyle influencer and commercial model specializing in beauty and fashion.',
-                          socials: { instagram: 125000, tiktok: 89000 }
+                          socials: { 
+                            instagram: { followers: 125000, handle: 'sarahchen' }, 
+                            tiktok: { followers: 89000, handle: 'sarahchenofficial' } 
+                          },
+                          photos: [
+                            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop'
+                          ],
+                          videos: [
+                            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4'
+                          ]
                         },
                         {
                           id: 3,
@@ -1960,18 +1981,136 @@ const PeopleSkillsPlatform = () => {
                           location: 'Miami, FL',
                           rate: 3000,
                           rating: 4.8,
-                          image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
                           bio: 'Professional fitness model and personal trainer with 8+ years experience.',
-                          socials: { instagram: 200000, tiktok: 150000 }
+                          socials: { 
+                            instagram: { followers: 200000, handle: 'marcusjohnson' }, 
+                            tiktok: { followers: 150000, handle: 'marcusjohnsonfit' } 
+                          },
+                          photos: [
+                            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop',
+                            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop'
+                          ],
+                          videos: [
+                            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+                            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4'
+                          ]
                         }
                       ].map((talent) => (
                         <div key={talent.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                          {/* Media Carousel Section */}
                           <div className="relative">
-                            <img
-                              src={talent.image}
-                              alt={talent.name}
-                              className="w-full h-64 object-cover"
-                            />
+                            <div className="grid grid-cols-2 gap-1 h-64">
+                              {/* Photos Carousel */}
+                              <div className="relative overflow-hidden">
+                                {talent.photos && talent.photos.length > 0 && (
+                                  <>
+                                    <img
+                                      src={talent.photos[imageCarouselIndex[talent.id] || 0]}
+                                      alt={`${talent.name} photo ${(imageCarouselIndex[talent.id] || 0) + 1}`}
+                                      className="w-full h-full object-cover"
+                                    />
+                                    {talent.photos.length > 1 && (
+                                      <>
+                                        <button
+                                          onClick={() => setImageCarouselIndex(prev => ({
+                                            ...prev,
+                                            [talent.id]: ((prev[talent.id] || 0) - 1 + talent.photos.length) % talent.photos.length
+                                          }))}
+                                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70"
+                                        >
+                                          <ChevronLeft className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                          onClick={() => setImageCarouselIndex(prev => ({
+                                            ...prev,
+                                            [talent.id]: ((prev[talent.id] || 0) + 1) % talent.photos.length
+                                          }))}
+                                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70"
+                                        >
+                                          <ChevronRight className="h-4 w-4" />
+                                        </button>
+                                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                                          {talent.photos.map((_, index) => (
+                                            <div
+                                              key={index}
+                                              className={`w-2 h-2 rounded-full ${
+                                                (imageCarouselIndex[talent.id] || 0) === index
+                                                  ? 'bg-white'
+                                                  : 'bg-white bg-opacity-50'
+                                              }`}
+                                            />
+                                          ))}
+                                        </div>
+                                      </>
+                                    )}
+                                    <div className="absolute top-2 left-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                                      <Image className="h-3 w-3 inline mr-1" />
+                                      {talent.photos.length}
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                              
+                              {/* Videos Carousel */}
+                              <div className="relative overflow-hidden">
+                                {talent.videos && talent.videos.length > 0 && (
+                                  <>
+                                    <video
+                                      src={talent.videos[videoCarouselIndex[talent.id] || 0]}
+                                      className="w-full h-full object-cover"
+                                      muted
+                                      loop
+                                    />
+                                    {talent.videos.length > 1 && (
+                                      <>
+                                        <button
+                                          onClick={() => setVideoCarouselIndex(prev => ({
+                                            ...prev,
+                                            [talent.id]: ((prev[talent.id] || 0) - 1 + talent.videos.length) % talent.videos.length
+                                          }))}
+                                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70"
+                                        >
+                                          <ChevronLeft className="h-4 w-4" />
+                                        </button>
+                                        <button
+                                          onClick={() => setVideoCarouselIndex(prev => ({
+                                            ...prev,
+                                            [talent.id]: ((prev[talent.id] || 0) + 1) % talent.videos.length
+                                          }))}
+                                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-1 rounded-full hover:bg-opacity-70"
+                                        >
+                                          <ChevronRight className="h-4 w-4" />
+                                        </button>
+                                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1">
+                                          {talent.videos.map((_, index) => (
+                                            <div
+                                              key={index}
+                                              className={`w-2 h-2 rounded-full ${
+                                                (videoCarouselIndex[talent.id] || 0) === index
+                                                  ? 'bg-white'
+                                                  : 'bg-white bg-opacity-50'
+                                              }`}
+                                            />
+                                          ))}
+                                        </div>
+                                      </>
+                                    )}
+                                    <div className="absolute top-2 right-2 bg-black bg-opacity-70 text-white px-2 py-1 rounded text-xs">
+                                      <Video className="h-3 w-3 inline mr-1" />
+                                      {talent.videos.length}
+                                    </div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                      <div className="bg-black bg-opacity-50 text-white p-2 rounded-full">
+                                        <Play className="h-6 w-6" />
+                                      </div>
+                                    </div>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Favorite Button */}
                             <button
                               onClick={() => handleFavorite(talent.id)}
                               className={`absolute top-3 right-3 p-2 rounded-full ${
@@ -1984,6 +2123,7 @@ const PeopleSkillsPlatform = () => {
                             </button>
                           </div>
                           
+                          {/* Card Content */}
                           <div className="p-4">
                             <div className="flex justify-between items-start mb-2">
                               <h3 className="text-lg font-semibold text-gray-900">{talent.name}</h3>
@@ -2008,17 +2148,30 @@ const PeopleSkillsPlatform = () => {
                                 <span className="text-sm text-gray-500 ml-1">/day</span>
                               </div>
                               <div className="text-xs text-gray-500">
-                                {talent.socials.instagram.toLocaleString()} followers
+                                {talent.socials.instagram.followers.toLocaleString()} followers
                               </div>
                             </div>
                             
-                            <div className="flex space-x-2">
-                              <button className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md hover:bg-gray-50">
-                                View Profile
-                              </button>
-                              <button className="flex-1 px-3 py-2 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700">
-                                Contact
-                              </button>
+                            {/* Social Media Links */}
+                            <div className="flex space-x-3">
+                              <a
+                                href={`https://instagram.com/${talent.socials.instagram.handle}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center text-pink-600 hover:text-pink-700 text-sm font-medium"
+                              >
+                                <span className="mr-1">📸</span>
+                                @{talent.socials.instagram.handle}
+                              </a>
+                              <a
+                                href={`https://tiktok.com/@${talent.socials.tiktok.handle}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center text-gray-600 hover:text-gray-700 text-sm font-medium"
+                              >
+                                <span className="mr-1">🎵</span>
+                                @{talent.socials.tiktok.handle}
+                              </a>
                             </div>
                           </div>
                         </div>
