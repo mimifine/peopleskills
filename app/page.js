@@ -1412,7 +1412,7 @@ const PeopleSkillsPlatform = () => {
             {activeTab === 'dashboard' && currentUserRole === 'ADMIN' && (
               <div className="space-y-6">
                 <div className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard (Updated)</h2>
                   
                   {/* Stats Overview */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
