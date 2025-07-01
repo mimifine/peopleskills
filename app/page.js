@@ -671,7 +671,7 @@ const PeopleSkillsPlatform = () => {
               Choose Your View
             </h2>
             <p className="mt-2 text-sm text-gray-600">
-              Select how you'd like to view the platform
+              Select how you&apos;d like to view the platform
             </p>
           </div>
           
