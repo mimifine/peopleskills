@@ -1,3 +1,7 @@
+// Force redeploy: trivial change to trigger Vercel build
+// 2024-07-01
+//
+
 "use client";
 
 import React, { useState, useEffect } from 'react';
