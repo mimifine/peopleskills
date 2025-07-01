@@ -128,9 +128,14 @@ const PeopleSkillsPlatform = () => {
   };
 
   const handleAddTalentSubmit = async (e) => {
+    console.log('🎯 Form submit triggered!');
     e.preventDefault();
     
+    console.log('📝 Form data:', addTalentForm);
+    console.log('✅ Full name check:', addTalentForm.fullName.trim());
+    
     if (!addTalentForm.fullName.trim()) {
+      console.log('❌ Full name is empty');
       setAddTalentMessage({ type: 'error', text: 'Full name is required' });
       return;
     }
@@ -1019,6 +1024,16 @@ const PeopleSkillsPlatform = () => {
                           className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                         >
                           Reset Form
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            console.log('🔧 Test button clicked!');
+                            alert('Test button works!');
+                          }}
+                          className="px-6 py-2 border border-blue-300 rounded-lg text-blue-700 hover:bg-blue-50 transition-colors"
+                        >
+                          Test Button
                         </button>
                         <button
                           type="submit"
