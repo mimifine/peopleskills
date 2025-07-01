@@ -147,6 +147,9 @@ const PeopleSkillsPlatform = () => {
         key: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set' : 'Missing'
       });
 
+      // Show loading message to user
+      setAddTalentMessage({ type: 'info', text: '🔄 Connecting to database...' });
+
       // Build socials object only if data exists
       const socials = {};
       if (addTalentForm.instagram && addTalentForm.instagram.trim()) {
@@ -189,9 +192,11 @@ const PeopleSkillsPlatform = () => {
         created_at: new Date().toISOString()
       };
   
-      console.log('📤 Submitting talent data:', talentData);
+            console.log('📤 Submitting talent data:', talentData);
       console.log('🎯 Target table: talent_profiles');
-  
+
+      setAddTalentMessage({ type: 'info', text: '📤 Submitting talent data...' });
+
       // Insert into Supabase
       const { data, error } = await supabase
         .from('talent_profiles')
