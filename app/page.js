@@ -189,8 +189,7 @@ const PeopleSkillsPlatform = () => {
         travel_accommodation: addTalentForm.travelAccommodation ? parseInt(addTalentForm.travelAccommodation) : null,
         agency_percent: addTalentForm.agencyPercent ? parseInt(addTalentForm.agencyPercent) : null,
         socials: Object.keys(socials).length > 0 ? socials : null,
-        agency_link: addTalentForm.agencyLink.trim() || null,
-        models_com_link: addTalentForm.modelsComLink.trim() || null,
+        // Removed agency_link and models_com_link as they don't exist in production database
         photos: uploadedPhotos.length > 0 ? uploadedPhotos.map(p => ({ url: p.preview, filename: p.file.name })) : [],
         videos: uploadedVideos.length > 0 ? uploadedVideos.map(v => ({ url: v.preview, filename: v.file.name })) : [],
         status: addTalentForm.status || 'pending',
