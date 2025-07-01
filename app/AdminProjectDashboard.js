@@ -3,7 +3,6 @@ import { Calendar, Users, DollarSign, MapPin, Clock, Search, Filter, ChevronDown
 import { supabase } from '../lib/supabase.js';
 
 const AdminProjectDashboard = () => {
-  console.log('🚀 AdminProjectDashboard component rendered');
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');

@@ -1443,15 +1443,7 @@ const PeopleSkillsPlatform = () => {
 
             {/* Admin: Project Dashboard Tab */}
                                 {activeTab === 'project-dashboard' && currentUserRole === 'ADMIN' && (
-                      <div>
-                        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
-                          <p><strong>Debug:</strong> AdminProjectDashboard should render here</p>
-                          <p>Active Tab: {activeTab}</p>
-                          <p>User Role: {currentUserRole}</p>
-                          <p>Is Authenticated: {isAuthenticated.toString()}</p>
-                        </div>
-                        <AdminProjectDashboard />
-                      </div>
+                      <AdminProjectDashboard />
                     )}
 
             {/* Admin: Manage Users Tab */}
