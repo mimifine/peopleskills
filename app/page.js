@@ -178,15 +178,19 @@ const PeopleSkillsPlatform = () => {
         bio: addTalentForm.bio.trim() || null,
         category: addTalentForm.category.trim() || null,
         location: addTalentForm.location.trim() || null,
-        // Removed size-related columns as they don't exist in production database
-        // height, bust, waist, hips, shoe_size
+        height: addTalentForm.height.trim() || null,
+        bust: addTalentForm.bust.trim() || null,
+        waist: addTalentForm.waist.trim() || null,
+        hips: addTalentForm.hips.trim() || null,
+        shoe_size: addTalentForm.shoeSize.trim() || null,
         daily_rate: addTalentForm.dailyRate ? parseInt(addTalentForm.dailyRate) : null,
         half_day_rate: addTalentForm.halfDayRate ? parseInt(addTalentForm.halfDayRate) : null,
         usage_fee: addTalentForm.usageFee ? parseInt(addTalentForm.usageFee) : null,
         travel_accommodation: addTalentForm.travelAccommodation ? parseInt(addTalentForm.travelAccommodation) : null,
         agency_percent: addTalentForm.agencyPercent ? parseInt(addTalentForm.agencyPercent) : null,
         socials: Object.keys(socials).length > 0 ? socials : null,
-        // Removed agency_link and models_com_link as they don't exist in production database
+        agency_link: addTalentForm.agencyLink.trim() || null,
+        models_com_link: addTalentForm.modelsComLink.trim() || null,
         photos: uploadedPhotos.length > 0 ? uploadedPhotos.map(p => ({ url: p.preview, filename: p.file.name })) : [],
         videos: uploadedVideos.length > 0 ? uploadedVideos.map(v => ({ url: v.preview, filename: v.file.name })) : [],
         status: addTalentForm.status || 'pending',
