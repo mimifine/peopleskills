@@ -355,8 +355,10 @@ const PeopleSkillsPlatform = () => {
   };
 
   const openAuthModal = (mode = 'login') => {
+    console.log('🔐 Opening auth modal with mode:', mode);
     setAuthMode(mode);
     setShowAuthModal(true);
+    console.log('🔐 Auth modal state set to true');
   };
 
   const handlePasswordSubmit = (e) => {
@@ -760,7 +762,10 @@ const PeopleSkillsPlatform = () => {
             <p className="text-gray-600 mb-6">Talent casting platform for brands and agencies</p>
             <div className="space-y-3">
               <button
-                onClick={() => openAuthModal('login')}
+                onClick={() => {
+                  console.log('🔘 Sign In button clicked!');
+                  openAuthModal('login');
+                }}
                 className="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
               >
                 Sign In
