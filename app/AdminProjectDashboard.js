@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Calendar, Users, DollarSign, MapPin, Clock, Search, Filter, ChevronDown, Eye, UserPlus, CheckCircle, AlertCircle, FileText, Briefcase, Star, SortAsc, SortDesc } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
+import ProjectTalentSelection from './ProjectTalentSelection.js';
 
 const AdminProjectDashboard = () => {
   const [projects, setProjects] = useState([]);
@@ -10,6 +11,8 @@ const AdminProjectDashboard = () => {
   const [sortBy, setSortBy] = useState('created_at');
   const [sortOrder, setSortOrder] = useState('desc');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [showTalentSelection, setShowTalentSelection] = useState(false);
 
   useEffect(() => {
     fetchProjects();
@@ -228,11 +231,34 @@ const AdminProjectDashboard = () => {
     return diffDays;
   };
 
+  const handleSelectTalent = (project) => {
+    setSelectedProject(project);
+    setShowTalentSelection(true);
+  };
+
+  const handleTalentAssigned = (talentCount) => {
+    // Update the project in the local state
+    setProjects(prevProjects => 
+      prevProjects.map(project => 
+        project.id === selectedProject.id 
+          ? { ...project, status: 'talent_assigned', talent_count: talentCount }
+          : project
+      )
+    );
+    setShowTalentSelection(false);
+    setSelectedProject(null);
+  };
+
+  const handleCloseTalentSelection = () => {
+    setShowTalentSelection(false);
+    setSelectedProject(null);
+  };
+
   // Stats
   const stats = {
     total: projects.length,
-    needsTalent: projects.filter(p => p.status === 'draft').length, // Using draft as "needs talent"
-    talentAssigned: projects.filter(p => p.status === 'active').length, // Using active as "talent assigned"
+    needsTalent: projects.filter(p => p.status === 'needs_talent').length,
+    talentAssigned: projects.filter(p => p.status === 'talent_assigned').length,
     completed: projects.filter(p => p.status === 'completed').length
   };
 
@@ -249,6 +275,14 @@ const AdminProjectDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Talent Selection Modal */}
+      {showTalentSelection && selectedProject && (
+        <ProjectTalentSelection
+          project={selectedProject}
+          onClose={handleCloseTalentSelection}
+          onTalentAssigned={handleTalentAssigned}
+        />
+      )}
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -359,10 +393,10 @@ const AdminProjectDashboard = () => {
                     className="w-full border border-gray-300 rounded px-3 py-2"
                   >
                     <option value="all">All Statuses</option>
-                    <option value="draft">Draft</option>
-                    <option value="active">Active</option>
+                    <option value="needs_talent">Needs Talent</option>
+                    <option value="talent_assigned">Talent Assigned</option>
                     <option value="completed">Completed</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="draft">Draft</option>
                   </select>
                 </div>
               </div>
@@ -493,14 +527,20 @@ const AdminProjectDashboard = () => {
                     <Eye className="h-4 w-4" />
                     <span>View Details</span>
                   </button>
-                  {project.status === 'draft' && (
-                    <button className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm flex items-center justify-center space-x-2">
+                  {project.status === 'needs_talent' && (
+                    <button 
+                      onClick={() => handleSelectTalent(project)}
+                      className="btn btn-primary flex-1 flex items-center justify-center space-x-2"
+                    >
                       <UserPlus className="h-4 w-4" />
                       <span>Select Talent</span>
                     </button>
                   )}
-                  {project.status === 'active' && (
-                    <button className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm flex items-center justify-center space-x-2">
+                  {project.status === 'talent_assigned' && (
+                    <button 
+                      onClick={() => handleSelectTalent(project)}
+                      className="btn btn-secondary flex-1 flex items-center justify-center space-x-2"
+                    >
                       <Users className="h-4 w-4" />
                       <span>Manage Talent</span>
                     </button>
