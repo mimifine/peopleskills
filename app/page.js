@@ -178,11 +178,8 @@ const PeopleSkillsPlatform = () => {
         bio: addTalentForm.bio.trim() || null,
         category: addTalentForm.category.trim() || null,
         location: addTalentForm.location.trim() || null,
-        height: addTalentForm.height.trim() || null,
-        bust: addTalentForm.bust.trim() || null,
-        waist: addTalentForm.waist.trim() || null,
-        hips: addTalentForm.hips.trim() || null,
-        shoe_size: addTalentForm.shoeSize.trim() || null,
+        // Removed size-related columns as they don't exist in production database
+        // height, bust, waist, hips, shoe_size
         daily_rate: addTalentForm.dailyRate ? parseInt(addTalentForm.dailyRate) : null,
         half_day_rate: addTalentForm.halfDayRate ? parseInt(addTalentForm.halfDayRate) : null,
         usage_fee: addTalentForm.usageFee ? parseInt(addTalentForm.usageFee) : null,
