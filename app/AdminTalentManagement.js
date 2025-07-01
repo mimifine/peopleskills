@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Filter, Users, Star, MapPin, DollarSign, Check, X, Package, Eye, Heart, MessageCircle, Image, ChevronDown, SortAsc, SortDesc } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
 const AdminTalentManagement = () => {
   // Real talent data from Supabase
@@ -13,55 +14,81 @@ const AdminTalentManagement = () => {
 
   const fetchTalents = async () => {
     try {
-      // Mock data for now - replace with your Supabase call
-      // When you integrate: const { data, error } = await supabase.from('talent_profiles').select('*');
+      setLoading(true);
       
-      // Simulated data including Vittoria Ceretti
+      // Fetch real talent data from Supabase
+      const { data: talentData, error } = await supabase
+        .from('talent_profiles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching talent:', error);
+        throw error;
+      }
+
+      // Transform data to match card format
+      const transformedTalents = talentData.map(talent => ({
+        id: talent.id,
+        name: talent.full_name || 'Unknown Talent',
+        category: talent.category || 'Not specified',
+        rate: talent.daily_rate || 0,
+        location: talent.location || 'Location not specified',
+        rating: 4.5, // Default rating since we don't have this field
+        image: talent.photos && talent.photos.length > 0 ? talent.photos[0] : '/api/placeholder/300/400',
+        bio: talent.bio || '',
+        socials: {
+          instagram: { 
+            followers: talent.socials?.instagram?.followers || 0,
+            handle: talent.socials?.instagram?.handle || ''
+          },
+          tiktok: { 
+            followers: talent.socials?.tiktok?.followers || 0,
+            handle: talent.socials?.tiktok?.handle || ''
+          }
+        },
+        votes: { up: [], down: [], userVote: null },
+        favorites: [],
+        tags: talent.category ? [talent.category.toLowerCase()] : ['talent'],
+        status: talent.status || 'pending'
+      }));
+
+      setTalents(transformedTalents);
+    } catch (error) {
+      console.error('Error in fetchTalents:', error);
+      // Fallback to mock data if database fails
       const mockData = [
         {
           id: 1,
-          full_name: 'Vittoria Ceretti (TESTING)',
+          full_name: 'Vittoria Ceretti (FALLBACK)',
           category: 'Model',
           location: 'Milan, Italy',
           bio: 'International fashion model with extensive runway and editorial experience.',
-          rates: '$5000',
-          social_media: {
+          daily_rate: 5000,
+          socials: {
             instagram: { followers: 850000, handle: '@vittoria' },
             tiktok: { followers: 120000, handle: '@vittoriaceretti' }
-          }
-        },
-        {
-          id: 2,
-          full_name: 'Sarah Chen',
-          category: 'Model/Influencer',
-          location: 'Los Angeles, CA',
-          bio: 'Lifestyle influencer and commercial model specializing in beauty and fashion.',
-          rates: '$2500',
-          social_media: {
-            instagram: { followers: 125000, handle: '@sarahchen' },
-            tiktok: { followers: 89000, handle: '@sarahchenofficial' }
           }
         }
       ];
 
-      // Transform data to match card format
       const transformedTalents = mockData.map(talent => ({
         id: talent.id,
         name: talent.full_name || talent.name,
         category: talent.category || 'Not specified',
-        rate: talent.rates ? parseInt(talent.rates.replace(/[^0-9]/g, '')) : 0,
+        rate: talent.daily_rate || 0,
         location: talent.location || 'Location not specified',
-        rating: talent.rating || 4.5,
-        image: talent.image_url || '/api/placeholder/300/400',
+        rating: 4.5,
+        image: '/api/placeholder/300/400',
         bio: talent.bio || '',
         socials: {
           instagram: { 
-            followers: talent.social_media?.instagram?.followers || 0,
-            handle: talent.social_media?.instagram?.handle || ''
+            followers: talent.socials?.instagram?.followers || 0,
+            handle: talent.socials?.instagram?.handle || ''
           },
           tiktok: { 
-            followers: talent.social_media?.tiktok?.followers || 0,
-            handle: talent.social_media?.tiktok?.handle || ''
+            followers: talent.socials?.tiktok?.followers || 0,
+            handle: talent.socials?.tiktok?.handle || ''
           }
         },
         votes: { up: [], down: [], userVote: null },
@@ -70,8 +97,6 @@ const AdminTalentManagement = () => {
       }));
 
       setTalents(transformedTalents);
-    } catch (error) {
-      console.error('Error in fetchTalents:', error);
     } finally {
       setLoading(false);
     }

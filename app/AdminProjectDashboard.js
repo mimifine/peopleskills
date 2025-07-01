@@ -20,12 +20,56 @@ const AdminProjectDashboard = ({ currentUser }) => {
 
   const fetchProjects = async () => {
     try {
-      // For now, let's always use mock data to ensure it shows up
+      setLoading(true);
+      
+      // Fetch projects with user information and talent counts
+      const { data: projectsData, error: projectsError } = await supabase
+        .from('projects')
+        .select(`
+          *,
+          users:brand_user_id (
+            id,
+            full_name,
+            email,
+            company_name
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (projectsError) {
+        console.error('Error fetching projects:', projectsError);
+        throw projectsError;
+      }
+
+      // Fetch talent counts for each project
+      const projectsWithTalentCounts = await Promise.all(
+        projectsData.map(async (project) => {
+          const { count: talentCount, error: countError } = await supabase
+            .from('project_talent')
+            .select('*', { count: 'exact', head: true })
+            .eq('project_id', project.id);
+
+          if (countError) {
+            console.error('Error counting talent for project:', project.id, countError);
+          }
+
+          return {
+            ...project,
+            talent_count: talentCount || 0,
+            users: project.users || { full_name: 'Unknown Brand', company_name: 'Unknown Company' }
+          };
+        })
+      );
+
+      setProjects(projectsWithTalentCounts);
+    } catch (error) {
+      console.error('Error in fetchProjects:', error);
+      // Fallback to mock data if database fails
       const mockProjects = [
         {
           id: 1,
           title: 'Summer Fashion Campaign 2025',
-          description: 'Looking for diverse models for our sustainable fashion line summer campaign. Focus on natural beauty and authentic lifestyle moments.',
+          description: 'Looking for diverse models for our sustainable fashion line summer campaign.',
           budget_min: 15000,
           budget_max: 25000,
           deadline: '2025-07-15',
@@ -37,86 +81,7 @@ const AdminProjectDashboard = ({ currentUser }) => {
           status: 'needs_talent',
           created_at: '2025-01-02T10:30:00Z',
           brand_user_id: 'brand-1',
-          company_id: 'sephora-1',
-          users: { full_name: 'Emma Davis', email: 'emma@sephora.com', company_name: 'Sephora', position: 'Marketing Director' },
-          collaborators: [
-            { id: 'user-2', name: 'Sarah Kim', position: 'Creative Director', role: 'collaborator' },
-            { id: 'user-3', name: 'Mike Johnson', position: 'Brand Manager', role: 'viewer' }
-          ],
-          primary_contact: { name: 'Emma Davis', email: 'emma@sephora.com' },
-          project_talent: [],
-          talent_count: 0
-        },
-        {
-          id: 2,
-          title: 'Tech Product Launch',
-          description: 'Seeking tech-savvy talent for our new AI product launch. Professional, modern aesthetic with diverse representation.',
-          budget_min: 8000,
-          budget_max: 15000,
-          deadline: '2025-06-30',
-          shoot_start_date: '2025-07-05',
-          shoot_end_date: '2025-07-05',
-          location: 'San Francisco, CA',
-          usage_rights: 'All media rights for 6 months including TV commercial',
-          number_of_talent: 2,
-          status: 'talent_assigned',
-          created_at: '2025-01-01T14:20:00Z',
-          brand_user_id: 'brand-2',
-          company_id: 'apple-1',
-          users: { full_name: 'Mike Chen', email: 'mike@apple.com', company_name: 'Apple', position: 'Product Marketing Lead' },
-          collaborators: [
-            { id: 'user-5', name: 'Jennifer Liu', position: 'Creative Director', role: 'collaborator' }
-          ],
-          primary_contact: { name: 'Mike Chen', email: 'mike@apple.com' },
-          project_talent: [1, 2],
-          talent_count: 2
-        },
-        {
-          id: 3,
-          title: 'Fitness Brand Commercial',
-          description: 'High-energy fitness commercial featuring real athletes and fitness enthusiasts. Authenticity is key.',
-          budget_min: 20000,
-          budget_max: 35000,
-          deadline: '2025-08-01',
-          shoot_start_date: '2025-08-10',
-          shoot_end_date: '2025-08-12',
-          location: 'Miami, FL',
-          usage_rights: 'Worldwide rights for 24 months across all platforms',
-          number_of_talent: 5,
-          status: 'completed',
-          created_at: '2024-12-28T09:15:00Z',
-          brand_user_id: 'brand-3',
-          company_id: 'nike-1',
-          users: { full_name: 'Lisa Wang', email: 'lisa@nike.com', company_name: 'Nike', position: 'Global Marketing Lead' },
-          collaborators: [
-            { id: 'user-7', name: 'James Smith', position: 'Campaign Manager', role: 'collaborator' },
-            { id: 'user-8', name: 'Anna Chen', position: 'Junior Coordinator', role: 'viewer' },
-            { id: 'user-9', name: 'David Park', position: 'Brand Director', role: 'owner' }
-          ],
-          primary_contact: { name: 'David Park', email: 'david@nike.com' },
-          project_talent: [1, 2, 3, 4, 5],
-          talent_count: 5
-        },
-        {
-          id: 4,
-          title: 'Beauty Brand Lifestyle Shoot',
-          description: 'Natural beauty campaign showcasing our new skincare line in everyday scenarios.',
-          budget_min: 12000,
-          budget_max: 18000,
-          deadline: '2025-07-30',
-          shoot_start_date: '2025-08-05',
-          shoot_end_date: '2025-08-06',
-          location: 'New York, NY',
-          usage_rights: 'Digital and print advertising for 18 months',
-          number_of_talent: 4,
-          status: 'needs_talent',
-          created_at: '2025-01-03T16:45:00Z',
-          brand_user_id: 'brand-4',
-          company_id: 'glossier-1',
-          users: { full_name: 'Emma Davis', email: 'emma@glossier.com', company_name: 'Glossier', position: 'Creative Director' },
-          collaborators: [],
-          primary_contact: { name: 'Emma Davis', email: 'emma@glossier.com' },
-          project_talent: [],
+          users: { full_name: 'Emma Davis', company_name: 'Sephora' },
           talent_count: 0
         }
       ];
@@ -237,16 +202,22 @@ const AdminProjectDashboard = ({ currentUser }) => {
   };
 
   const handleTalentAssigned = (talentCount) => {
-    // Update the project in the local state
-    setProjects(prevProjects => 
-      prevProjects.map(project => 
-        project.id === selectedProject.id 
-          ? { ...project, status: 'talent_assigned', talent_count: talentCount }
-          : project
-      )
-    );
-    setShowTalentSelection(false);
+    // Update the selected project's talent count and status
+    setProjects(prev => prev.map(project => 
+      project.id === selectedProject?.id 
+        ? { 
+            ...project, 
+            talent_count: talentCount,
+            status: 'talent_assigned'
+          }
+        : project
+    ));
+    
+    // Clear the selected project
     setSelectedProject(null);
+    
+    // Refresh the projects list to get the latest data
+    fetchProjects();
   };
 
   const handleCloseTalentSelection = () => {
@@ -405,8 +376,6 @@ const AdminProjectDashboard = ({ currentUser }) => {
           </div>
         </div>
       </div>
-
-
 
       {/* Projects Grid */}
       <div className="max-w-7xl mx-auto px-4 py-8">

@@ -27,41 +27,71 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
 
   const fetchTalents = async () => {
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // Fetch real talent data from Supabase
+      const { data: talentData, error } = await supabase
         .from('talent_profiles')
         .select('*')
-        .order('full_name');
+        .eq('status', 'active')
+        .order('full_name', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching talent:', error);
+        throw error;
+      }
 
-      // Transform data to match card format
-      const transformedTalents = data.map(talent => ({
+      // Transform data to match the expected format
+      const transformedTalents = talentData.map(talent => ({
         id: talent.id,
-        name: talent.full_name || talent.name,
+        name: talent.full_name || 'Unknown Talent',
         category: talent.category || 'Not specified',
-        rate: talent.daily_rate ? parseInt(talent.daily_rate) : 0,
         location: talent.location || 'Location not specified',
-        rating: talent.rating || 4.5,
-        image: talent.image_url || '/api/placeholder/300/400',
+        rate: talent.daily_rate || 0,
         bio: talent.bio || '',
         socials: {
           instagram: { 
-            followers: talent.instagram_followers || 0,
-            handle: talent.instagram || ''
+            followers: talent.socials?.instagram?.followers || 0,
+            handle: talent.socials?.instagram?.handle || ''
           },
           tiktok: { 
-            followers: talent.tiktok_followers || 0,
-            handle: talent.tiktok || ''
+            followers: talent.socials?.tiktok?.followers || 0,
+            handle: talent.socials?.tiktok?.handle || ''
           }
         },
-        votes: { up: [], down: [], userVote: null },
-        favorites: [],
-        tags: talent.category ? [talent.category.toLowerCase()] : ['talent']
+        photos: talent.photos || [],
+        videos: talent.videos || []
       }));
 
       setTalents(transformedTalents);
     } catch (error) {
-      console.error('Error fetching talents:', error);
+      console.error('Error in fetchTalents:', error);
+      // Fallback to mock data if database fails
+      const mockTalents = [
+        {
+          id: 1,
+          name: 'Vittoria Ceretti',
+          category: 'Fashion Model',
+          location: 'Milan, Italy',
+          rate: 5000,
+          rating: 4.9,
+          bio: 'International fashion model with extensive runway and editorial experience.',
+          socials: { 
+            instagram: { followers: 850000, handle: 'vittoria' }, 
+            tiktok: { followers: 120000, handle: 'vittoriaceretti' } 
+          },
+          photos: [
+            'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
+            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop'
+          ],
+          videos: [
+            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
+            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4'
+          ]
+        }
+      ];
+      setTalents(mockTalents);
     } finally {
       setLoading(false);
     }
@@ -167,11 +197,16 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
   };
 
   const saveTalentSelection = async () => {
+    if (selectedTalent.length === 0) {
+      setSaveMessage({ type: 'error', text: 'Please select at least one talent' });
+      return;
+    }
+
     setSaving(true);
     setSaveMessage({ type: '', text: '' });
 
     try {
-      // First, remove existing selections for this project
+      // First, delete any existing selections for this project
       const { error: deleteError } = await supabase
         .from('project_talent')
         .delete()
@@ -181,23 +216,30 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
 
       // Then, insert new selections
       if (selectedTalent.length > 0) {
-        // Use mock user ID for now since we're using mock authentication
         const selections = selectedTalent.map(talentId => ({
           project_id: project.id,
-          talent_id: talentId,
-          selected_by: currentUser?.id || 'admin-1',
-          status: 'selected'
+          talent_profile_id: talentId,
+          status: 'selected',
+          admin_notes: `Selected by admin on ${new Date().toLocaleDateString()}`
         }));
 
-        // For now, just simulate the database operation
-        console.log('🎯 Would save talent selections:', selections);
-        
-        // In a real implementation, this would be:
-        // const { error: insertError } = await supabase
-        //   .from('project_talent')
-        //   .insert(selections);
-        // if (insertError) throw insertError;
+        const { error: insertError } = await supabase
+          .from('project_talent')
+          .insert(selections);
+
+        if (insertError) throw insertError;
       }
+
+      // Update project status to 'talent_assigned'
+      const { error: updateError } = await supabase
+        .from('projects')
+        .update({ 
+          status: 'talent_assigned',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', project.id);
+
+      if (updateError) throw updateError;
 
       setSaveMessage({ type: 'success', text: `Successfully assigned ${selectedTalent.length} talent to project` });
       
