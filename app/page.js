@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, DollarSign, User, Calendar, Send, Plus, FileText, Users, Briefcase, Eye, MapPin, ExternalLink, Upload, X, ThumbsUp, ThumbsDown, Heart, MessageCircle, Calculator, Edit3, Image, Video, Trash2, ChevronLeft, ChevronRight, Play, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase.js';
 import AdminTalentManagement from './AdminTalentManagement.js';
+import AdminProjectDashboard from './AdminProjectDashboard.js';
 
 const PeopleSkillsPlatform = () => {
   // Password protection state
@@ -840,6 +841,16 @@ const PeopleSkillsPlatform = () => {
                           All Projects
                         </button>
                         <button
+                          onClick={() => setActiveTab('project-dashboard')}
+                          className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                            activeTab === 'project-dashboard'
+                              ? 'bg-purple-100 text-purple-700'
+                              : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+                          }`}
+                        >
+                          Project Dashboard
+                        </button>
+                        <button
                           onClick={() => setActiveTab('manage-users')}
                           className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
                             activeTab === 'manage-users'
@@ -1423,6 +1434,11 @@ const PeopleSkillsPlatform = () => {
                   <p className="text-gray-600">View and manage all projects in the system.</p>
                 </div>
               </div>
+            )}
+
+            {/* Admin: Project Dashboard Tab */}
+            {activeTab === 'project-dashboard' && currentUserRole === 'ADMIN' && (
+              <AdminProjectDashboard />
             )}
 
             {/* Admin: Manage Users Tab */}
