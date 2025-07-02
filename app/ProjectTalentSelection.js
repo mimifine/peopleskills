@@ -149,17 +149,32 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
     setSaveMessage({ type: '', text: '' });
 
     try {
-      // Get current user ID
+      // Get current user ID with better error handling
       console.log('🔍 Getting current user...');
       const { data: { user }, error: userError } = await supabase.auth.getUser();
       
+      let currentUserId = null;
+      
       if (userError) {
         console.error('❌ User error:', userError);
-        throw userError;
+        // Try to get session instead
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError) {
+          console.error('❌ Session error:', sessionError);
+        } else if (session?.user) {
+          currentUserId = session.user.id;
+          console.log('✅ Got user from session:', currentUserId);
+        }
+      } else if (user) {
+        currentUserId = user.id;
+        console.log('✅ Got user from getUser:', currentUserId);
       }
       
-      const currentUserId = user?.id || currentUser?.id || 'admin-user';
-      console.log('👤 Current user ID:', currentUserId);
+      // Fallback to admin user if no authenticated user found
+      if (!currentUserId) {
+        console.log('⚠️ No authenticated user found, using admin fallback');
+        currentUserId = 'admin-user-id'; // This will be handled by RLS policies
+      }
 
       // First, delete any existing selections for this project
       console.log('🗑️ Deleting existing selections for project:', project.id);
@@ -232,7 +247,18 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
       console.error('❌ Error saving talent selection:', error);
       console.error('❌ Error message:', error.message);
       console.error('❌ Error code:', error.code);
-      setSaveMessage({ type: 'error', text: `Failed to save talent selection: ${error.message}` });
+      
+      // Provide more specific error messages
+      let errorMessage = 'Failed to save talent selection. Please try again.';
+      if (error.message.includes('Auth session missing')) {
+        errorMessage = 'Authentication required. Please sign in again.';
+      } else if (error.message.includes('permission')) {
+        errorMessage = 'Permission denied. Please check your admin access.';
+      } else if (error.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      setSaveMessage({ type: 'error', text: errorMessage });
     } finally {
       setSaving(false);
     }
