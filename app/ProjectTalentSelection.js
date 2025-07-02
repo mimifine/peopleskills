@@ -150,7 +150,14 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
 
     try {
       // Get current user ID
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('🔍 Getting current user...');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError) {
+        console.error('❌ User error:', userError);
+        throw userError;
+      }
+      
       const currentUserId = user?.id || currentUser?.id || 'admin-user';
       console.log('👤 Current user ID:', currentUserId);
 
@@ -177,32 +184,37 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         }));
 
         console.log('💾 Inserting selections:', selections);
-        const { error: insertError } = await supabase
+        const { data: insertData, error: insertError } = await supabase
           .from('project_talent')
-          .insert(selections);
+          .insert(selections)
+          .select();
 
         if (insertError) {
           console.error('❌ Insert error:', insertError);
+          console.error('❌ Insert error details:', insertError.details);
+          console.error('❌ Insert error hint:', insertError.hint);
           throw insertError;
         }
-        console.log('✅ Selections inserted successfully');
+        console.log('✅ Selections inserted successfully:', insertData);
       }
 
       // Update project status to 'talent_assigned'
       console.log('🔄 Updating project status to talent_assigned');
-      const { error: updateError } = await supabase
+      const { data: updateData, error: updateError } = await supabase
         .from('projects')
         .update({ 
           status: 'talent_assigned',
           updated_at: new Date().toISOString()
         })
-        .eq('id', project.id);
+        .eq('id', project.id)
+        .select();
 
       if (updateError) {
         console.error('❌ Update error:', updateError);
+        console.error('❌ Update error details:', updateError.details);
         throw updateError;
       }
-      console.log('✅ Project status updated successfully');
+      console.log('✅ Project status updated successfully:', updateData);
 
       setSaveMessage({ type: 'success', text: `Successfully assigned ${selectedTalent.length} talent to project` });
       
@@ -217,8 +229,10 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
       }, 2000);
 
     } catch (error) {
-      console.error('Error saving talent selection:', error);
-      setSaveMessage({ type: 'error', text: 'Failed to save talent selection. Please try again.' });
+      console.error('❌ Error saving talent selection:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error code:', error.code);
+      setSaveMessage({ type: 'error', text: `Failed to save talent selection: ${error.message}` });
     } finally {
       setSaving(false);
     }
