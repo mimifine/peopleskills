@@ -34,7 +34,6 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
       const { data: talentData, error } = await supabase
         .from('talent_profiles')
         .select('*')
-        .eq('status', 'active')
         .order('full_name', { ascending: true });
 
       if (error) {
