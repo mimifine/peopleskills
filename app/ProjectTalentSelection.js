@@ -206,6 +206,10 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
     setSaveMessage({ type: '', text: '' });
 
     try {
+      // Get current user ID
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user?.id || currentUser?.id || 'admin-user';
+
       // First, delete any existing selections for this project
       const { error: deleteError } = await supabase
         .from('project_talent')
@@ -219,6 +223,7 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         const selections = selectedTalent.map(talentId => ({
           project_id: project.id,
           talent_profile_id: talentId,
+          selected_by: currentUserId,
           status: 'selected',
           admin_notes: `Selected by admin on ${new Date().toLocaleDateString()}`
         }));
