@@ -497,24 +497,17 @@ const AdminProjectDashboard = ({ currentUser }) => {
                     <Eye className="h-4 w-4" />
                     <span>View Details</span>
                   </button>
-                  {project.status === 'needs_talent' && (
-                    <button 
-                      onClick={() => handleSelectTalent(project)}
-                      className="btn btn-primary flex-1 flex items-center justify-center space-x-2"
-                    >
-                      <UserPlus className="h-4 w-4" />
-                      <span>Select Talent</span>
-                    </button>
-                  )}
-                  {project.status === 'talent_assigned' && (
-                    <button 
-                      onClick={() => handleSelectTalent(project)}
-                      className="btn btn-secondary flex-1 flex items-center justify-center space-x-2"
-                    >
-                      <Users className="h-4 w-4" />
-                      <span>Manage Talent</span>
-                    </button>
-                  )}
+                  
+                  {/* Always show Select Talent button for testing */}
+                  <button
+                    onClick={() => handleSelectTalent(project)}
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm flex items-center justify-center space-x-2"
+                  >
+                    <UserPlus className="h-4 w-4" />
+                    <span>
+                      {project.status === 'talent_assigned' ? 'Manage Talent' : 'Select Talent'}
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>
