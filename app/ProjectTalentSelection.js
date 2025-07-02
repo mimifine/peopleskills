@@ -1,29 +1,44 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Search, Filter, Users, Star, MapPin, DollarSign, Check, X, Package, Eye, Heart, MessageCircle, Image, ChevronDown, SortAsc, SortDesc, ArrowLeft, Save, Plus } from 'lucide-react';
-import { supabase } from '../lib/supabase.js';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import { 
+  ArrowLeft, 
+  Search, 
+  Filter, 
+  ChevronDown, 
+  Save, 
+  Check, 
+  X, 
+  UserPlus,
+  Users,
+  Star,
+  MapPin,
+  DollarSign,
+  Instagram,
+  MessageCircle
+} from 'lucide-react';
 
 const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUser }) => {
-  // State for talent data and selection
   const [talents, setTalents] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedTalent, setSelectedTalent] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState({ type: '', text: '' });
-
-  // State for search, filters, and sorting
+  
+  // Search and filter states
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
   const [rateRange, setRateRange] = useState({ min: '', max: '' });
   const [sortBy, setSortBy] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
-  const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch talent from Supabase on component mount
   useEffect(() => {
     fetchTalents();
     fetchExistingSelections();
-  }, [project.id]);
+  }, []);
 
   const fetchTalents = async () => {
     try {
@@ -40,9 +55,8 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         console.error('❌ Error fetching talent:', error);
         throw error;
       }
-      
-      console.log('📊 Raw talent data from Supabase:', talentData);
-      console.log('📈 Number of talent found:', talentData?.length || 0);
+
+      console.log('✅ Fetched talent data:', talentData);
 
       // Transform data to match the expected format
       const transformedTalents = talentData.map(talent => ({
@@ -51,8 +65,9 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         category: talent.category || 'Not specified',
         location: talent.location || 'Location not specified',
         rate: talent.daily_rate || 0,
-        rating: 4.5, // Default rating
         bio: talent.bio || '',
+        rating: 4.5, // Mock rating
+        tags: ['Professional', 'Reliable'], // Mock tags
         socials: {
           instagram: { 
             followers: talent.socials?.instagram?.followers || 0,
@@ -64,39 +79,12 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
           }
         },
         photos: talent.photos || [],
-        videos: talent.videos || [],
-        tags: talent.category ? [talent.category.toLowerCase()] : ['talent']
+        videos: talent.videos || []
       }));
 
       setTalents(transformedTalents);
     } catch (error) {
-      console.error('Error in fetchTalents:', error);
-      // Fallback to mock data if database fails
-      const mockTalents = [
-        {
-          id: 1,
-          name: 'Vittoria Ceretti',
-          category: 'Fashion Model',
-          location: 'Milan, Italy',
-          rate: 5000,
-          rating: 4.9,
-          bio: 'International fashion model with extensive runway and editorial experience.',
-          socials: { 
-            instagram: { followers: 850000, handle: 'vittoria' }, 
-            tiktok: { followers: 120000, handle: 'vittoriaceretti' } 
-          },
-          photos: [
-            'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop',
-            'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop',
-            'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=300&h=400&fit=crop'
-          ],
-          videos: [
-            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4',
-            'https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_2mb.mp4'
-          ]
-        }
-      ];
-      setTalents(mockTalents);
+      console.error('Error fetching talents:', error);
     } finally {
       setLoading(false);
     }
@@ -104,78 +92,24 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
 
   const fetchExistingSelections = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: existingSelections, error } = await supabase
         .from('project_talent')
-        .select('talent_id')
-        .eq('project_id', project.id);
+        .select('talent_profile_id')
+        .eq('project_id', project.id)
+        .eq('status', 'selected');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching existing selections:', error);
+        return;
+      }
 
-      const selectedIds = data.map(item => item.talent_id);
+      const selectedIds = existingSelections.map(selection => selection.talent_profile_id);
       setSelectedTalent(selectedIds);
     } catch (error) {
       console.error('Error fetching existing selections:', error);
     }
   };
 
-  // Get unique categories and locations for filter dropdowns
-  const categories = [...new Set(talents.map(t => t.category))];
-  const locations = [...new Set(talents.map(t => t.location))];
-
-  // Filter and sort talents
-  const filteredAndSortedTalents = useMemo(() => {
-    let filtered = talents.filter(talent => {
-      const matchesSearch = talent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           talent.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           talent.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           talent.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-      
-      const matchesCategory = selectedCategory === 'all' || talent.category === selectedCategory;
-      const matchesLocation = selectedLocation === 'all' || talent.location === selectedLocation;
-      
-      const matchesRate = (!rateRange.min || talent.rate >= parseInt(rateRange.min)) &&
-                         (!rateRange.max || talent.rate <= parseInt(rateRange.max));
-      
-      return matchesSearch && matchesCategory && matchesLocation && matchesRate;
-    });
-
-    // Sort
-    filtered.sort((a, b) => {
-      let aValue, bValue;
-      
-      switch (sortBy) {
-        case 'name':
-          aValue = a.name;
-          bValue = b.name;
-          break;
-        case 'rate':
-          aValue = a.rate;
-          bValue = b.rate;
-          break;
-        case 'rating':
-          aValue = a.rating;
-          bValue = b.rating;
-          break;
-        case 'followers':
-          aValue = a.socials.instagram.followers + a.socials.tiktok.followers;
-          bValue = b.socials.instagram.followers + b.socials.tiktok.followers;
-          break;
-        default:
-          aValue = a.name;
-          bValue = b.name;
-      }
-      
-      if (sortOrder === 'asc') {
-        return aValue > bValue ? 1 : -1;
-      } else {
-        return aValue < bValue ? 1 : -1;
-      }
-    });
-
-    return filtered;
-  }, [talents, searchTerm, selectedCategory, selectedLocation, rateRange, sortBy, sortOrder]);
-
-  // Selection handlers
   const handleSelectTalent = (talentId) => {
     setSelectedTalent(prev => 
       prev.includes(talentId) 
@@ -300,6 +234,45 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
     if (!rate) return 'Rate not specified';
     return `$${rate.toLocaleString()}`;
   };
+
+  // Filter and sort talents
+  const filteredAndSortedTalents = talents
+    .filter(talent => {
+      const matchesSearch = talent.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           talent.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           talent.location.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = selectedCategory === 'all' || talent.category === selectedCategory;
+      const matchesLocation = selectedLocation === 'all' || talent.location === selectedLocation;
+      
+      const matchesRate = (!rateRange.min || talent.rate >= parseInt(rateRange.min)) &&
+                         (!rateRange.max || talent.rate <= parseInt(rateRange.max));
+      
+      return matchesSearch && matchesCategory && matchesLocation && matchesRate;
+    })
+    .sort((a, b) => {
+      let comparison = 0;
+      switch (sortBy) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'rate':
+          comparison = a.rate - b.rate;
+          break;
+        case 'followers':
+          const aFollowers = a.socials.instagram.followers + a.socials.tiktok.followers;
+          const bFollowers = b.socials.instagram.followers + b.socials.tiktok.followers;
+          comparison = aFollowers - bFollowers;
+          break;
+        default:
+          comparison = 0;
+      }
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+
+  // Get unique categories and locations for filters
+  const categories = ['all', ...new Set(talents.map(t => t.category).filter(Boolean))];
+  const locations = ['all', ...new Set(talents.map(t => t.location).filter(Boolean))];
 
   if (loading) {
     return (
@@ -429,13 +402,14 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="input"
                 >
-                  <option value="all">All Categories</option>
                   {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category}>
+                      {category === 'all' ? 'All Categories' : category}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
                 <select
@@ -443,81 +417,76 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                   onChange={(e) => setSelectedLocation(e.target.value)}
                   className="input"
                 >
-                  <option value="all">All Locations</option>
                   {locations.map(location => (
-                    <option key={location} value={location}>{location}</option>
+                    <option key={location} value={location}>
+                      {location === 'all' ? 'All Locations' : location}
+                    </option>
                   ))}
                 </select>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Min Rate</label>
-                <input
-                  type="number"
-                  placeholder="Min rate"
-                  value={rateRange.min}
-                  onChange={(e) => setRateRange(prev => ({ ...prev, min: e.target.value }))}
-                  className="input"
-                />
+                <label className="block text-sm font-medium text-gray-700 mb-1">Rate Range</label>
+                <div className="flex space-x-2">
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={rateRange.min}
+                    onChange={(e) => setRateRange(prev => ({ ...prev, min: e.target.value }))}
+                    className="input flex-1"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={rateRange.max}
+                    onChange={(e) => setRateRange(prev => ({ ...prev, max: e.target.value }))}
+                    className="input flex-1"
+                  />
+                </div>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Max Rate</label>
-                <input
-                  type="number"
-                  placeholder="Max rate"
-                  value={rateRange.max}
-                  onChange={(e) => setRateRange(prev => ({ ...prev, max: e.target.value }))}
+                <label className="block text-sm font-medium text-gray-700 mb-1">Sort By</label>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
                   className="input"
-                />
+                >
+                  <option value="name">Name</option>
+                  <option value="rate">Rate</option>
+                  <option value="followers">Followers</option>
+                </select>
               </div>
             </div>
           )}
         </div>
 
         {/* Talent Grid */}
-        <div className="overflow-y-auto max-h-[60vh]">
+        <div className="flex-1 overflow-y-auto">
           {filteredAndSortedTalents.length === 0 ? (
             <div className="text-center py-12">
               <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No talent found</h3>
-              <p className="text-gray-600">Try adjusting your search or filter criteria.</p>
+              <p className="text-gray-600">Try adjusting your search or filters</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredAndSortedTalents.map((talent) => (
                 <div
                   key={talent.id}
-                  className={`card card-bordered p-4 cursor-pointer transition-all ${
-                    selectedTalent.includes(talent.id) 
-                      ? 'ring-2 ring-primary border-primary' 
-                      : 'hover:shadow-md'
+                  className={`bg-background border-2 rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-lg ${
+                    selectedTalent.includes(talent.id)
+                      ? 'border-primary ring-2 ring-primary/20'
+                      : 'border-border hover:border-primary/50'
                   }`}
                   onClick={() => handleSelectTalent(talent.id)}
                 >
-                  {/* Selection Checkbox */}
-                  <div className="flex justify-between items-start mb-3">
-                    <div className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        checked={selectedTalent.includes(talent.id)}
-                        onChange={() => handleSelectTalent(talent.id)}
-                        className="rounded border-gray-300 text-primary focus:ring-primary"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      <span className="text-sm font-medium text-gray-600">Select</span>
-                    </div>
-                    {selectedTalent.includes(talent.id) && (
-                      <Check className="h-5 w-5 text-primary" />
-                    )}
-                  </div>
-
                   {/* Talent Image */}
                   <div className="relative mb-4">
                     <img
                       src={talent.photos && talent.photos.length > 0 ? talent.photos[0] : 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop'}
                       alt={talent.name}
-                      className="w-full h-48 object-cover rounded-lg bg-gray-200"
+                      className="w-full h-48 object-cover bg-gray-100"
                       onError={(e) => {
                         e.target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop';
                       }}
@@ -525,41 +494,60 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                     <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
                       {talent.category}
                     </div>
+                    {selectedTalent.includes(talent.id) && (
+                      <div className="absolute top-2 left-2 bg-primary text-white p-1 rounded-full">
+                        <Check className="h-4 w-4" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Talent Info */}
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg text-foreground">{talent.name}</h3>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <MapPin className="h-4 w-4" />
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <h3 className="font-semibold text-foreground">{talent.name}</h3>
+                      <div className="flex items-center space-x-1">
+                        <Star className="h-4 w-4 text-yellow-400 fill-current" />
+                        <span className="text-sm text-gray-600">{talent.rating}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center text-sm text-gray-600 mb-2">
+                      <MapPin className="h-3 w-3 mr-1" />
                       <span>{talent.location}</span>
                     </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <DollarSign className="h-4 w-4" />
+
+                    <div className="flex items-center text-sm text-gray-600 mb-3">
+                      <DollarSign className="h-3 w-3 mr-1" />
                       <span>{formatRate(talent.rate)}</span>
                     </div>
-                    
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <Star className="h-4 w-4 text-yellow-500" />
-                      <span>{talent.rating}</span>
-                    </div>
 
-                    {/* Social Media */}
-                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                    {/* Social Stats */}
+                    <div className="flex items-center space-x-4 text-xs text-gray-500 mb-3">
                       {talent.socials.instagram.followers > 0 && (
-                        <span>📸 {formatFollowers(talent.socials.instagram.followers)}</span>
+                        <div className="flex items-center">
+                          <Instagram className="h-3 w-3 mr-1" />
+                          <span>{formatFollowers(talent.socials.instagram.followers)}</span>
+                        </div>
                       )}
                       {talent.socials.tiktok.followers > 0 && (
-                        <span>🎵 {formatFollowers(talent.socials.tiktok.followers)}</span>
+                        <div className="flex items-center">
+                          <MessageCircle className="h-3 w-3 mr-1" />
+                          <span>{formatFollowers(talent.socials.tiktok.followers)}</span>
+                        </div>
                       )}
                     </div>
 
-                    {/* Bio */}
-                    {talent.bio && (
-                      <p className="text-sm text-gray-600 line-clamp-2">{talent.bio}</p>
-                    )}
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1">
+                      {talent.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               ))}
