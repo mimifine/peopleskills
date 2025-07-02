@@ -2482,3 +2482,4 @@ const PeopleSkillsPlatform = () => {
 };
 
 export default PeopleSkillsPlatform;
+// Force fresh deployment - Tue Jul  1 17:39:59 PDT 2025
