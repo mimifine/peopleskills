@@ -28,6 +28,7 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
   const fetchTalents = async () => {
     try {
       setLoading(true);
+      console.log('🔄 Fetching talent from Supabase...');
       
       // Fetch real talent data from Supabase
       const { data: talentData, error } = await supabase
@@ -37,9 +38,12 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         .order('full_name', { ascending: true });
 
       if (error) {
-        console.error('Error fetching talent:', error);
+        console.error('❌ Error fetching talent:', error);
         throw error;
       }
+      
+      console.log('📊 Raw talent data from Supabase:', talentData);
+      console.log('📈 Number of talent found:', talentData?.length || 0);
 
       // Transform data to match the expected format
       const transformedTalents = talentData.map(talent => ({
@@ -48,6 +52,7 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         category: talent.category || 'Not specified',
         location: talent.location || 'Location not specified',
         rate: talent.daily_rate || 0,
+        rating: 4.5, // Default rating
         bio: talent.bio || '',
         socials: {
           instagram: { 
@@ -60,7 +65,8 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
           }
         },
         photos: talent.photos || [],
-        videos: talent.videos || []
+        videos: talent.videos || [],
+        tags: talent.category ? [talent.category.toLowerCase()] : ['talent']
       }));
 
       setTalents(transformedTalents);
@@ -197,6 +203,10 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
   };
 
   const saveTalentSelection = async () => {
+    console.log('🎯 Save talent selection triggered!');
+    console.log('📝 Selected talent:', selectedTalent);
+    console.log('📋 Project:', project);
+    
     if (selectedTalent.length === 0) {
       setSaveMessage({ type: 'error', text: 'Please select at least one talent' });
       return;
@@ -209,14 +219,20 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
       // Get current user ID
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserId = user?.id || currentUser?.id || 'admin-user';
+      console.log('👤 Current user ID:', currentUserId);
 
       // First, delete any existing selections for this project
+      console.log('🗑️ Deleting existing selections for project:', project.id);
       const { error: deleteError } = await supabase
         .from('project_talent')
         .delete()
         .eq('project_id', project.id);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('❌ Delete error:', deleteError);
+        throw deleteError;
+      }
+      console.log('✅ Existing selections deleted');
 
       // Then, insert new selections
       if (selectedTalent.length > 0) {
@@ -228,14 +244,20 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
           admin_notes: `Selected by admin on ${new Date().toLocaleDateString()}`
         }));
 
+        console.log('💾 Inserting selections:', selections);
         const { error: insertError } = await supabase
           .from('project_talent')
           .insert(selections);
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Insert error:', insertError);
+          throw insertError;
+        }
+        console.log('✅ Selections inserted successfully');
       }
 
       // Update project status to 'talent_assigned'
+      console.log('🔄 Updating project status to talent_assigned');
       const { error: updateError } = await supabase
         .from('projects')
         .update({ 
@@ -244,7 +266,11 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         })
         .eq('id', project.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ Update error:', updateError);
+        throw updateError;
+      }
+      console.log('✅ Project status updated successfully');
 
       setSaveMessage({ type: 'success', text: `Successfully assigned ${selectedTalent.length} talent to project` });
       
@@ -491,9 +517,12 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                   {/* Talent Image */}
                   <div className="relative mb-4">
                     <img
-                      src={talent.image}
+                      src={talent.photos && talent.photos.length > 0 ? talent.photos[0] : 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop'}
                       alt={talent.name}
-                      className="w-full h-48 object-cover rounded-lg"
+                      className="w-full h-48 object-cover rounded-lg bg-gray-200"
+                      onError={(e) => {
+                        e.target.src = 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=300&h=400&fit=crop';
+                      }}
                     />
                     <div className="absolute top-2 right-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
                       {talent.category}
