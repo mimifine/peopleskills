@@ -238,7 +238,6 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
         const selections = selectedTalent.map(talentId => ({
           project_id: project.id,
           talent_profile_id: talentId,
-          selected_by: currentUserId,
           status: 'selected',
           admin_notes: `Selected by admin on ${new Date().toLocaleDateString()}`
         }));
