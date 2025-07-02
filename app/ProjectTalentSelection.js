@@ -362,6 +362,21 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
           </div>
         )}
 
+        {/* Instructions */}
+        <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              <Check className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">How to select talent:</h3>
+              <p className="text-sm text-blue-700 mt-1">
+                Click the checkbox on any talent card to select them, or click anywhere on the card. Selected talent will show a green checkmark.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* Search and Filters */}
         <div className="bg-background-secondary rounded-lg p-4 mb-6">
           <div className="flex flex-col lg:flex-row gap-4">
@@ -495,6 +510,17 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                   }`}
                   onClick={() => handleSelectTalent(talent.id)}
                 >
+                  {/* Selection Checkbox */}
+                  <div className="absolute top-2 left-2 z-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedTalent.includes(talent.id)}
+                      onChange={() => handleSelectTalent(talent.id)}
+                      className="w-5 h-5 text-primary bg-white border-2 border-gray-300 rounded focus:ring-primary focus:ring-2"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </div>
+
                   {/* Talent Image */}
                   <div className="relative mb-4">
                     <img
@@ -509,7 +535,7 @@ const ProjectTalentSelection = ({ project, onClose, onTalentAssigned, currentUse
                       {talent.category}
                     </div>
                     {selectedTalent.includes(talent.id) && (
-                      <div className="absolute top-2 left-2 bg-primary text-white p-1 rounded-full">
+                      <div className="absolute top-2 left-12 bg-primary text-white p-1 rounded-full">
                         <Check className="h-4 w-4" />
                       </div>
                     )}
